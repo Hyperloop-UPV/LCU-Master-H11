@@ -68,18 +68,11 @@ void DMA2_Stream0_IRQHandler(void);
 void DMA2_Stream1_IRQHandler(void);
 void DMA2_Stream2_IRQHandler(void);
 void FMAC_IRQHandler(void);
-void TIM2_IRQHandler(void);
 void I2C2_EV_IRQHandler(void);
-void TIM8_TRG_COM_TIM14_IRQHandler(void);
-void TIM5_IRQHandler(void);
-void SPI3_IRQHandler(void);
-void TIM7_IRQHandler(void);
 void ETH_IRQHandler(void);
 void LPTIM1_IRQHandler(void);
 void LPTIM2_IRQHandler(void);
 void LPTIM3_IRQHandler(void);
-void TIM23_IRQHandler(void);
-void TIM24_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

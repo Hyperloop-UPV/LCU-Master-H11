@@ -73,7 +73,6 @@ extern LPTIM_HandleTypeDef hlptim2;
 extern LPTIM_HandleTypeDef hlptim3;
 extern DMA_HandleTypeDef hdma_spi3_rx;
 extern DMA_HandleTypeDef hdma_spi3_tx;
-extern SPI_HandleTypeDef hspi3;
 extern FDCAN_HandleTypeDef hfdcan1;
 /*
 Externs for calltrace
@@ -556,20 +555,6 @@ void DMA2_Stream2_IRQHandler(void)
 void FMAC_IRQHandler(void)
 {
   HAL_FMAC_IRQHandler(&hfmac);
-}
-
-/**
-  * @brief This function handles SPI3 global interrupt.
-  */
-void SPI3_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI3_IRQn 0 */
-
-  /* USER CODE END SPI3_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi3);
-  /* USER CODE BEGIN SPI3_IRQn 1 */
-
-  /* USER CODE END SPI3_IRQn 1 */
 }
 
 /**
