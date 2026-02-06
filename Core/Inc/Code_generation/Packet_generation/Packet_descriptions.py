@@ -157,4 +157,6 @@ class MeasurmentsDescription:
             type += "_t"
         elif type == "float32":
             type = "float"
+        elif type == "float64":
+            type = "double"
         return type
