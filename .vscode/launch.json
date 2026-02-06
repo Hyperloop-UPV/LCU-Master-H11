@@ -1,6 +1,6 @@
 {
-  "version": "0.2.0",
-  "configurations": [
+    "version": "0.2.0",
+    "configurations": [
         {
             "name": "Build and Debug STM32H723 (OpenOCD + RTT)",
             "type": "cortex-debug",
@@ -16,7 +16,7 @@
             "device": "STM32H723ZGTx",
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile":"./STM32H723.svd",
+            "svdFile": "./STM32H723.svd",
             "showDevDebugOutput": "parsed",
             "postLaunchCommands": [
                 "monitor rtt setup 0x24000000 0x24080000 \"SEGGER RTT\"",
@@ -39,8 +39,7 @@
                     }
                 ]
             },
-            "preLaunchTask": "CMake: build then pre-flash check"
-
+            "preLaunchTask": "CMake: build"
         },
         {
             "name": "Debug STM32H723 (OpenOCD + RTT) - No Build",
@@ -57,7 +56,7 @@
             "device": "STM32H723ZGTx",
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile":"./STM32H723.svd",
+            "svdFile": "./STM32H723.svd",
             "showDevDebugOutput": "parsed",
             "postLaunchCommands": [
                 "monitor rtt setup 0x24000000 0x24080000 \"SEGGER RTT\"",
@@ -80,26 +79,86 @@
                     }
                 ]
             },
-            "preLaunchTask": "Pre-flash check"
+            // "preLaunchTask": "Pre-flash check"
         },
-    {
-      "name": "Debug simulator on Rosetta",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "out/build/latest.elf",
-      "miDebuggerServerAddress": "localhost:1234",
-      "miDebuggerPath": "/usr/bin/gdb",
-      "MIMode": "gdb",
-      "setupCommands": [
         {
-          "description": "Set architecture to x86-64",
-          "text": "set architecture i386:x86-64",
-          "ignoreFailures": false
+            "name": "Debug simulator on Rosetta",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "out/build/latest.elf",
+            "miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Set architecture to x86-64",
+                    "text": "set architecture i386:x86-64",
+                    "ignoreFailures": false
+                }
+            ],
+            "preLaunchTask": "Start Debug Server for Simulator on emulated arch",
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Build and Debug Project",
+            "servertype": "stlink",
+            "cwd": "${workspaceRoot}",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "raw",
+            "executable": "out/build/latest.elf",
+            "device": "STM32H723ZG",
+            "configFiles": [
+                ".vscode/stlink.cfg",
+                ".vscode/stm32h7x.cfg"
+            ],
+            "svdFile": ".vscode/STM32H723.svd",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 8000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    {
+                        "type": "console",
+                        "label": "ITM",
+                        "port": 0
+                    }
+                ]
+            },
+            "preLaunchTask": "CMake: build"
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug Project",
+            "servertype": "stlink",
+            "cwd": "${workspaceRoot}",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "raw",
+            "executable": "out/build/latest.elf",
+            "device": "STM32H723ZG",
+            "configFiles": [
+                ".vscode/stlink.cfg",
+                ".vscode/stm32h7x.cfg"
+            ],
+            "svdFile": "./STM32H723.svd",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 8000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    {
+                        "type": "console",
+                        "label": "ITM",
+                        "port": 0
+                    }
+                ]
+            },
+            "stm32cubeprogrammer": "/opt/st/stm32cubeclt_1.16.0/STM32CubeProgrammer/bin"
         }
-      ],
-      "preLaunchTask": "Start Debug Server for Simulator on emulated arch",
-      "cwd": "${workspaceFolder}",
-      "externalConsole": false
-    }
-  ]
+    ]
 }
