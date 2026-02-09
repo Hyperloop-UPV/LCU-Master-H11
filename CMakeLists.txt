@@ -5,7 +5,8 @@ project(template-project LANGUAGES ASM C CXX)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(Board "VCU") # User must change the Board name
 set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
-set(LD_SCRIPT ${STLIB_DIR}/STM32H723ZGTX_FLASH.ld)
+set(LD_SCRIPT  ${STLIB_DIR}/STM32H723ZGTX_FLASH.ld)
+set(SHARED_DIR  ${CMAKE_CURRENT_LIST_DIR}/deps/LCU-Shared-H11)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
@@ -59,6 +60,11 @@ message(STATUS "Template project: TARGET_NUCLEO        = ${TARGET_NUCLEO}")
 
 add_subdirectory(${STLIB_DIR})
 message(STATUS "Using ST-LIB target: ${STLIB_LIBRARY}")
+
+file(GLOB_RECURSE SOURCE_C    ${CMAKE_SOURCE_DIR}/Core/*.c)
+file(GLOB_RECURSE SOURCE_CPP  ${CMAKE_SOURCE_DIR}/Core/*.cpp)
+file(GLOB_RECURSE SOURCE_H    ${CMAKE_SOURCE_DIR}/Core/*.h)
+file(GLOB_RECURSE SOURCE_HPP  ${CMAKE_SOURCE_DIR}/Core/*.hpp)
 
 file(GLOB_RECURSE GENERATOR_JSONS
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/JSON_ADE/*.json
@@ -178,6 +184,7 @@ if(CMAKE_CROSSCOMPILING)
 
   target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${SHARED_DIR}/Inc
   )
 
   target_link_options(${EXECUTABLE} PRIVATE

@@ -1,6 +1,3 @@
-#include "Examples/ExampleMPU.cpp"
-#include "Examples/ExamplesHardFault.cpp"
-
 #include "ST-LIB.hpp"
 #include "main.h"
 
