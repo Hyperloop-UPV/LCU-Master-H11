@@ -6,7 +6,7 @@ on:
       preset:
         description: >
           CMake preset to build the project, run
-          `cmake --build --list-presets` to see options
+          `cmake --list-presets` to see options
         required: false
         type: string
         default: 'nucleo-debug'
@@ -20,7 +20,7 @@ on:
       preset:
         description: >
           CMake preset to build the project, run
-          `cmake --build --list-presets` to see options
+          `cmake --list-presets` to see options
         required: false
         type: string
         default: 'nucleo-debug'

@@ -8,22 +8,22 @@
         "problemMatcher": [],
         "isBackground": true
       },
-      {
-        "label": "Pre-flash check",
-        "type": "shell",
-        "command": "${workspaceFolder}/virtual/bin/python",
-        "windows": {
-          "command": "${workspaceFolder}/virtual/Scripts/python"
-        },
-        "args": [
-          "${workspaceFolder}/tools/preflash_check.py"
-        ],
-        "problemMatcher": [],
-        "presentation": {
-          "reveal": "always",
-          "panel": "shared"
-        }
-      },
+      // {
+      //   "label": "Pre-flash check",
+      //   "type": "shell",
+      //   "command": "${workspaceFolder}/virtual/bin/python",
+      //   "windows": {
+      //     "command": "${workspaceFolder}/virtual/Scripts/python"
+      //   },
+      //   "args": [
+      //     "${workspaceFolder}/tools/preflash_check.py"
+      //   ],
+      //   "problemMatcher": [],
+      //   "presentation": {
+      //     "reveal": "always",
+      //     "panel": "shared"
+      //   }
+      // },
       {
         "label": "CMake: build then pre-flash check",
         "dependsOn": ["CMake: build", "Pre-flash check"],

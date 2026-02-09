@@ -7,9 +7,12 @@ class BoardDescription:
         self.id = board["board_id"]
         self.ip = board["board_ip"]
         #Sockets:
-        with open(JSONpath+"/boards/"+name+"/sockets.json") as s:
-            socks = json.load(s)
-            self.sockets=self.SocketsDescription(socks,self.ip)
+        try:
+            with open(JSONpath+"/boards/"+name+"/sockets.json") as s:
+                socks = json.load(s)
+                self.sockets=self.SocketsDescription(socks,self.ip)
+        except Exception as e:
+            raise Exception(f"Error in file {JSONpath}/boards/{name}/sockets.json: {e}")
         #Packets: 
         self.sending_packets = []
         self.data_size =0
@@ -17,17 +20,23 @@ class BoardDescription:
         self.measurement_lists = []
         self.packets = {}
         for measurement in board["measurements"]:
-            with open(JSONpath+"/boards/" + name + "/" + measurement) as f:
-                m = json.load(f)
-                self.measurement_lists.append(m)
+            try:
+                with open(JSONpath+"/boards/" + name + "/" + measurement) as f:
+                    m = json.load(f)
+                    self.measurement_lists.append(m)
+            except Exception as e:
+                raise Exception(f"Error in file {JSONpath}/boards/{name}/{measurement}: {e}")
         for packets in board["packets"]:
             packets_name = re.split(r'_|\.', packets)[0]
             self.packets[packets_name] = []
-            with open(JSONpath+"/boards/" + name+"/" + packets) as f:
-                p= json.load(f)
+            try:
+                with open(JSONpath+"/boards/" + name+"/" + packets) as f:
+                    p= json.load(f)
+            except Exception as e:
+                raise Exception(f"Error in file {JSONpath}/boards/{name}/{packets}: {e}")
             i=0
             for packet in p:
-                self.packets[packets_name].append(PacketDescription(packet,self.measurement_lists))
+                self.packets[packets_name].append(PacketDescription(packet,self.measurement_lists, packets))
                 aux_sending= PacketDescription.check_for_sending(packet)
                 if aux_sending is not None:
                     self.sending_packets.append(aux_sending)
@@ -88,7 +97,7 @@ class BoardDescription:
 
         
 class PacketDescription:
-    def __init__(self, packet:dict,measurements:list):
+    def __init__(self, packet:dict,measurements:list, filename:str="Unknown"):
         self.id =packet["id"]
         self.name = packet["name"].replace(" ", "_").replace("-", "_")
         self.type = packet["type"]
@@ -98,7 +107,7 @@ class PacketDescription:
             return
         for variable in packet["variables"]:
             self.variables.append(variable)
-            self.measurements.append(MeasurmentsDescription(measurements,variable))
+            self.measurements.append(MeasurmentsDescription(measurements,variable, filename))
             
     @staticmethod
     def check_for_sending(packet:dict):
@@ -112,15 +121,15 @@ class PacketDescription:
         else:
             return None
 class MeasurmentsDescription:
-    def __init__(self,measurements:list, variable:str):
+    def __init__(self,measurements:list, variable:str, filename:str="Unknown"):
         self.id = variable
         if not hasattr(self.__class__, 'viewed_measurements'):
             self.__class__.viewed_measurements = {}
         measurement = self._MeasurementSearch(measurements,variable)
         
         if measurement is None:
-            print(variable)
-            raise Exception("Measurement not found")
+            print(f"Measurement not found for variable: {variable} in file: {filename}\n")
+            raise Exception(f"Measurement not found for variable: {variable} in file: {filename}")
         
         self.name = measurement["name"]
         self.type = (self._unsigned_int_correction(measurement["type"]).replace(" ", "_").replace("-", "_"))
