@@ -3,8 +3,6 @@
 DMA_HandleTypeDef hdma_adc1;
 DMA_HandleTypeDef hdma_adc2;
 DMA_HandleTypeDef hdma_adc3;
-DMA_HandleTypeDef hdma_spi3_rx;
-DMA_HandleTypeDef hdma_spi3_tx;
 DMA_HandleTypeDef hdma_i2c2_rx;
 DMA_HandleTypeDef hdma_i2c2_tx;
 DMA_HandleTypeDef hdma_fmac_preload;
@@ -33,7 +31,6 @@ extern TIM_HandleTypeDef htim24;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
-SPI_HandleTypeDef hspi3;
 FDCAN_HandleTypeDef hfdcan1;
 FMAC_HandleTypeDef hfmac;
 
@@ -112,13 +109,16 @@ vector<uint32_t> channels1 = {};
 vector<uint32_t> channels2 = {};
 vector<uint32_t> channels3 = {};
 
-ADC::InitData init_data1(ADC1, ADC_RESOLUTION_16B, ADC_EXTERNALTRIG_LPTIM1_OUT,
-                         channels1, DMA::Stream::DMA1Stream0, "ADC 1");
-ADC::InitData init_data2(ADC2, ADC_RESOLUTION_16B, ADC_EXTERNALTRIG_LPTIM2_OUT,
-                         channels2, DMA::Stream::DMA1Stream1, "ADC 2");
-ADC::InitData init_data3(ADC3, ADC_RESOLUTION_12B, ADC_EXTERNALTRIG_LPTIM3_OUT,
-                         channels3, DMA::Stream::DMA1Stream2, "ADC 3");
+ST_LIB::DMA_Domain::Instance dma_adc1 = {hdma_adc1};
+ST_LIB::DMA_Domain::Instance dma_adc2 = {hdma_adc2};
+ST_LIB::DMA_Domain::Instance dma_adc3 = {hdma_adc3};
 
+ADC::InitData init_data1(ADC1, ADC_RESOLUTION_16B, ADC_EXTERNALTRIG_LPTIM1_OUT,
+                         channels1, &dma_adc1, "ADC 1");
+ADC::InitData init_data2(ADC2, ADC_RESOLUTION_16B, ADC_EXTERNALTRIG_LPTIM2_OUT,
+                         channels2, &dma_adc2, "ADC 2");
+ADC::InitData init_data3(ADC3, ADC_RESOLUTION_12B, ADC_EXTERNALTRIG_LPTIM3_OUT,
+                         channels3, &dma_adc3, "ADC 3");
 ADC::Peripheral ADC::peripherals[3] = {
     ADC::Peripheral(&hadc1, lptim1, init_data1),
     ADC::Peripheral(&hadc2, lptim2, init_data2),

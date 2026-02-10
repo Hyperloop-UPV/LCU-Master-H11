@@ -37,9 +37,6 @@ extern DMA_HandleTypeDef hdma_fmac_preload;
 extern DMA_HandleTypeDef hdma_fmac_read;
 extern DMA_HandleTypeDef hdma_fmac_write;
 
-extern DMA_HandleTypeDef hdma_spi3_rx;
-
-extern DMA_HandleTypeDef hdma_spi3_tx;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
