@@ -14,13 +14,16 @@ namespace Pinout {
     auto &LED_OPERATIONAL = ST_LIB::PG8;
     auto &LED_FAULT = ST_LIB::PG7;
 
+    /* Fault Lines (EXTI) */
+    // TODO
+
 
     // ============================================
     // LPU
     // ============================================
 
     /* Fault (Digital Input) */
-    auto &fautlt1 = ST_LIB::PE9;
+    auto &fault1 = ST_LIB::PE9;
     auto &fault2 = ST_LIB::PE7;
     auto &fault3 = ST_LIB::PF2;
     auto &fault4 = ST_LIB::PE6;
@@ -58,7 +61,7 @@ namespace Pinout {
     auto &spi_sck = ST_LIB::PC10;
     auto &spi_miso = ST_LIB::PC11;
     auto &spi_mosi = ST_LIB::PC12;
-    auto &spi_nss = ST_LIB::PD3; // Will use as GPIO with software NSS management (always active)
+    auto &spi_nss = ST_LIB::PD3; // Will use as GPIO (master_ready pin) with software NSS management (always active)
 };
 
 #endif // PINOUT_HPP
