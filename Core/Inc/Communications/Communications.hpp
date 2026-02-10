@@ -26,6 +26,9 @@ namespace Comms {
 
     inline ST_LIB::SPIDomain::SPIWrapper<LCU_Master::spi_req> *g_spi = nullptr;
     inline ST_LIB::DigitalOutputDomain::Instance *g_master_ready = nullptr;
+    #ifdef STLIB_ETH
+    inline ST_LIB::EthernetDomain::Instance *g_eth = nullptr;
+    #endif
 
     volatile bool send_flag = false;
     volatile bool spi_flag = false;
@@ -54,6 +57,10 @@ namespace Comms {
     }
 
     inline void update() {
+        #ifdef STLIB_ETH
+        g_eth->update();
+        #endif
+
         // Process TCP/UDP Orders
         if (OrderPackets::levitate_flag) {
             communications.send_order(OrderID::LEVITATE, desired_distance);

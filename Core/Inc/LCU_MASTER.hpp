@@ -9,6 +9,11 @@ namespace LCU_Master {
     inline void init() {
         Board::init();
 
+        #ifdef STLIB_ETH
+        static auto eth_instance = Board::instance_of<eth>();
+        Comms::g_eth = &eth_instance;
+        #endif
+
         static auto my_spi_inst = Board::instance_of<LCU_Master::spi_req>();
         static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(my_spi_inst);
         Comms::g_spi = &my_spi;
@@ -17,7 +22,8 @@ namespace LCU_Master {
         Comms::g_master_ready = &my_master_ready_inst;
 
         STLIB::start();
-        CommsFrame::init(Comms::communications, Comms::communications);
+        CommsFrame::init(Comms::communications,
+                         Comms::communications);
         Comms::start();
     }
 
