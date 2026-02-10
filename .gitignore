@@ -100,3 +100,4 @@ tools/*.bin
 
 # Auto gen
 Core/Src/Runes/generate_metadata.cpp
+Core/Inc/Communications/Packets/*.hpp

@@ -14,13 +14,6 @@ namespace Pinout {
     auto &LED_OPERATIONAL = ST_LIB::PG8;
     auto &LED_FAULT = ST_LIB::PG7;
 
-    /* Don't know? */
-    auto &RST1 = ST_LIB::PD9;
-    auto &RST2 = ST_LIB::PD10;
-    auto &RST3 = ST_LIB::PD8;
-    auto &RST4 = ST_LIB::PB15;
-    auto &RST5 = ST_LIB::PB14;
-
 
     // ============================================
     // LPU
@@ -49,23 +42,23 @@ namespace Pinout {
     auto &ready8 = ST_LIB::PB11;
     auto &ready9 = ST_LIB::PE13;
     auto &ready10 = ST_LIB::PE10;
+
+    /* Reset (Digital Output) */
+    auto &rst1 = ST_LIB::PD9;
+    auto &rst2 = ST_LIB::PD10;
+    auto &rst3 = ST_LIB::PD8;
+    auto &rst4 = ST_LIB::PB15;
+    auto &rst5 = ST_LIB::PB14;
+
+    // ============================================
+    // SPI
+    // ============================================
+
+    auto constexpr spi_peripheral = ST_LIB::SPIDomain::SPIPeripheral::spi3;
+    auto &spi_sck = ST_LIB::PC10;
+    auto &spi_miso = ST_LIB::PC11;
+    auto &spi_mosi = ST_LIB::PC12;
+    auto &spi_nss = ST_LIB::PD3; // Will use as GPIO with software NSS management (always active)
 };
-
-
-
-// static IPV4 LCU_IP(LCU_IP_STR);
-// static IPV4 HVSCU_IP(HVSCU_IP_STR);
-
-
-static const uint32_t TCP_SERVER_PORT = 50500;
-static const uint32_t TCP_CLIENT_PORT = 50401;
-
-static const uint32_t UDP_PORT = 50400;
-
-namespace OUTPUTS
-{
-
-}
-
 
 #endif // PINOUT_HPP
