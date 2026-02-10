@@ -99,5 +99,5 @@ tools/*.bin
 *.log
 
 # Auto gen
-Core/Src/Runes/generate_metadata.cpp
+Core/Src/Runes/generated_metadata.cpp
 Core/Inc/Communications/Packets/*.hpp

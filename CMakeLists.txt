@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 project(template-project LANGUAGES ASM C CXX)
 
 set(EXECUTABLE ${PROJECT_NAME}.elf)
-set(Board "VCU") # User must change the Board name
+set(Board "LCU") # User must change the Board name
 set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
 set(LD_SCRIPT  ${STLIB_DIR}/STM32H723ZGTX_FLASH.ld)
 set(SHARED_DIR  ${CMAKE_CURRENT_LIST_DIR}/deps/LCU-Shared-H11)
