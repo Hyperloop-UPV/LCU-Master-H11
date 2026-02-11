@@ -14,7 +14,6 @@ class LPU : public LPUBase {
         if (ready_pin.read() == GPIO_PinState::GPIO_PIN_SET) ready = true; else ready = false;
         if (fault_pin.read() == GPIO_PinState::GPIO_PIN_SET) fault = true; else fault = false;
         if (fault) {
-            disable();
             return false;
         }
         return true;
@@ -32,8 +31,8 @@ class LpuArray;
 
 template <typename... LPUs, typename... ResetPins>
 class LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>> {    
-    constexpr size_t LpuCount = sizeof...(LPUs);
-    constexpr size_t PinCount = sizeof...(ResetPins);
+    static constexpr size_t LpuCount = sizeof...(LPUs);
+    static constexpr size_t PinCount = sizeof...(ResetPins);
 
     static_assert(LpuCount == PinCount * 2 || (LpuCount == 1 && PinCount == 1), "Configuration Error: Must have exactly 2 LPUs per Enable Pin or have only 1 LPU and 1 Enable Pin (1DOF).");
 
