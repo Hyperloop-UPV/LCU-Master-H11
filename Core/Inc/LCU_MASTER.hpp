@@ -9,6 +9,7 @@ namespace LCU_Master {
     inline void init() {
         Board::init();
 
+        /* Comms */
         #ifdef STLIB_ETH
         static auto eth_instance = Board::instance_of<eth>();
         Comms::g_eth = &eth_instance;
@@ -21,10 +22,25 @@ namespace LCU_Master {
         static auto my_master_ready_inst = Board::instance_of<LCU_Master::master_ready_req>();
         Comms::g_master_ready = &my_master_ready_inst;
 
+        /* LPU */
+        auto& ready_pin1 = Board::instance_of<ready1_req>();
+        auto& fault_pin1 = Board::instance_of<fault1_req>();
+        static LPU lpu1_inst(ready_pin1, fault_pin1);
+        LCU_Master::lpu1 = &lpu1_inst;
+
+        static auto& rst_pin1 = Board::instance_of<rst1_req>();
+        static LpuArray lpu_array1_inst(std::make_tuple(std::ref(lpu1_inst)), std::make_tuple(std::ref(rst_pin1)));
+        LCU_Master::lpu_array1 = &lpu_array1_inst;
+
+
+        /* Tie comms variables to packets */
+        // TODO
+
         STLIB::start();
-        CommsFrame::init(Comms::communications,
-                         Comms::communications);
+        CommsFrame::init(Comms::communications, lpu1_inst,
+                         Comms::communications, lpu1_inst, airgap1);
         Comms::start();
+
     }
 
     void update() {

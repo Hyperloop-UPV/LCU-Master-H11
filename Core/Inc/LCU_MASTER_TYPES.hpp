@@ -5,7 +5,8 @@
 #include "Pinout/Pinout.hpp"
 #include "SpiShared.hpp"
 #include "ConfigShared.hpp"
-
+#include "LPU/LPU.hpp"
+#include "AirgapShared.hpp"
 
 using namespace ST_LIB;
 
@@ -80,6 +81,11 @@ namespace LCU_Master {
         >;
 
     using CommsFrame = SystemFrame<true>;
+
+    inline LPU *lpu1 = nullptr;
+    inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array1;
+
+    inline AirgapBase airgap1;
 }
 
 #endif // LCU_MASTER_TYPES_HPP
