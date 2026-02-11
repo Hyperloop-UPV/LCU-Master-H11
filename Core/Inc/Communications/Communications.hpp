@@ -57,6 +57,7 @@ namespace Comms {
         DataPackets::start();
     }
 
+    // Must later clear flags
     inline void update() {
         #ifdef STLIB_ETH
         g_eth->update();
@@ -102,6 +103,13 @@ namespace Comms {
             receive_flag = false;
             operation_flag = false;
         }
+    }
+
+    inline void clear_flags() {
+        send_flag = false;
+        spi_flag = false;
+        receive_flag = false;
+        operation_flag = false;
     }
 };
 
