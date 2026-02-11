@@ -33,6 +33,7 @@ namespace Comms {
     volatile bool send_flag = false;
     volatile bool spi_flag = false;
     volatile bool receive_flag = false;
+    volatile bool operation_flag = false;
 
     inline void start() {
         // Initialize Orders
@@ -85,20 +86,22 @@ namespace Comms {
         // Synchronize Flags
         communications.update_flag_synchronization();
 
-        if (send_flag) {
+        // SPI Communication Logic
+        if (!operation_flag) {
+            operation_flag = true;
+            LCU_Master::CommsFrame::update_tx(&send_flag);
+        } else if (send_flag) {
             send_flag = false;
-            g_spi->transceive(LCU_Master::CommsFrame::tx_buffer, LCU_Master::CommsFrame::rx_buffer);
+            g_spi->transceive(LCU_Master::CommsFrame::tx_buffer, LCU_Master::CommsFrame::rx_buffer, &spi_flag);
             g_master_ready->turn_on();
         } else if (spi_flag) {
+            g_master_ready->turn_off();
             spi_flag = false;
             LCU_Master::CommsFrame::update_rx(&receive_flag);
-            g_master_ready->turn_off();
+        } else if (receive_flag) {
+            receive_flag = false;
+            operation_flag = false;
         }
-    }
-
-    inline void send() {
-        // Update Frame (MDMA Transfers)
-        LCU_Master::CommsFrame::update_tx(&send_flag);
     }
 };
 
