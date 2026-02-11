@@ -42,6 +42,8 @@ class LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>> {
     LPUPtrTuple lpus;
     PinPtrTuple reset_pins;
 
+    bool all_ok = true;
+
    public:
     LpuArray(std::tuple<LPUs&...> _lpus, std::tuple<ResetPins&...> _pins) {
         lpus = std::apply([](auto&... lpu) { return std::make_tuple(&lpu...); }, _lpus);
@@ -81,7 +83,7 @@ class LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>> {
     }
 
     bool update_all() {
-        bool all_ok = true;
+        all_ok = true;
         std::apply([&](auto&... lpu) { ((all_ok &= lpu->update()), ...); }, lpus);
         return all_ok;
     }
@@ -89,6 +91,10 @@ class LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>> {
     template <size_t Index>
     auto& get_lpu() {
         return *std::get<Index>(lpus);
+    }
+
+    bool is_all_ok() const {
+        return all_ok;
     }
 };
 

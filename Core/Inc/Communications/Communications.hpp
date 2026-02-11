@@ -23,6 +23,8 @@ namespace Comms {
     inline float lcu_vbat[10];
     inline float lcu_coil_current[10];
     inline float lcu_airgap[8];
+    inline DataPackets::general_state_machine general_state_machine;
+    inline DataPackets::operational_state_machine operational_state_machine;
 
     inline ST_LIB::SPIDomain::SPIWrapper<LCU_Master::spi_req> *g_spi = nullptr;
     inline ST_LIB::DigitalOutputDomain::Instance *g_master_ready = nullptr;
@@ -53,8 +55,18 @@ namespace Comms {
             lcu_airgap[0], lcu_airgap[1], lcu_airgap[2], lcu_airgap[3], 
             lcu_airgap[4], lcu_airgap[5], lcu_airgap[6], lcu_airgap[7]
         );
+        DataPackets::state_machine_init(general_state_machine, operational_state_machine);
 
         DataPackets::start();
+    }
+
+    inline bool is_connected() {
+        #ifdef STLIB_ETH
+        g_eth->update();
+        return DataPackets::control_station_tcp->is_connected();
+        #else
+        return true; // If no Ethernet, assume always connected for SPI
+        #endif
     }
 
     // Must later clear flags
@@ -66,22 +78,18 @@ namespace Comms {
         // Process TCP/UDP Orders
         if (OrderPackets::levitate_flag) {
             communications.send_order(OrderID::LEVITATE, desired_distance);
-            OrderPackets::levitate_flag = false;
         }
 
         if (OrderPackets::current_control_flag) {
             communications.send_order(OrderID::CURRENT_CONTROL, desired_current, 0.0f, lpu_id);
-            OrderPackets::current_control_flag = false;
         }
 
         if (OrderPackets::start_pwm_flag) {
             communications.send_order(OrderID::START_PWM, static_cast<float>(pwm_frequency), pwm_duty_cycle, lpu_id);
-            OrderPackets::start_pwm_flag = false;
         }
 
         if (OrderPackets::stop_pwm_flag) {
             communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f, lpu_id);
-            OrderPackets::stop_pwm_flag = false;
         }
 
         // Synchronize Flags
@@ -106,10 +114,10 @@ namespace Comms {
     }
 
     inline void clear_flags() {
-        send_flag = false;
-        spi_flag = false;
-        receive_flag = false;
-        operation_flag = false;
+        OrderPackets::levitate_flag = false;
+        OrderPackets::current_control_flag = false;
+        OrderPackets::start_pwm_flag = false;
+        OrderPackets::stop_pwm_flag = false;
     }
 };
 

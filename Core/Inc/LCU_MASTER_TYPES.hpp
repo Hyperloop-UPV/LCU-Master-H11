@@ -83,7 +83,7 @@ namespace LCU_Master {
     using CommsFrame = SystemFrame<true>;
 
     inline LPU *lpu1 = nullptr;
-    inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array1;
+    inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
 
     inline AirgapBase airgap1;
 }

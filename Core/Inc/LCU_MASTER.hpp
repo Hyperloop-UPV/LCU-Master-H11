@@ -4,6 +4,7 @@
 #include "LCU_MASTER_TYPES.hpp"
 #include "ST-LIB.hpp"
 #include "Communications/Communications.hpp"
+#include "StateMachine/StateMachine.hpp"
 
 namespace LCU_Master {
     inline void init() {
@@ -29,23 +30,33 @@ namespace LCU_Master {
         LCU_Master::lpu1 = &lpu1_inst;
 
         static auto& rst_pin1 = Board::instance_of<rst1_req>();
-        static LpuArray lpu_array1_inst(std::make_tuple(std::ref(lpu1_inst)), std::make_tuple(std::ref(rst_pin1)));
-        LCU_Master::lpu_array1 = &lpu_array1_inst;
+        static LpuArray lpu_array_inst(std::make_tuple(std::ref(lpu1_inst)), std::make_tuple(std::ref(rst_pin1)));
+        LCU_Master::lpu_array = &lpu_array_inst;
 
 
         /* Tie comms variables to packets */
         // TODO
 
-        STLIB::start();
+        // STLIB::start();
         CommsFrame::init(Comms::communications, lpu1_inst,
                          Comms::communications, lpu1_inst, airgap1);
         Comms::start();
-
+        Scheduler::start();
+        LCU_StateMachine::start();
     }
 
     void update() {
-        STLIB::update();
+        if (LCU_StateMachine::general_state_machine.get_current_state() == LCU_StateMachine::GeneralStates::Connecting) {
+            LCU_StateMachine::update();
+            return;
+        }
+
         Comms::update();
+        LCU_StateMachine::update();
+        MDMA::update();
+        Scheduler::update();
+        // do things with flags
+        Comms::clear_flags();
         // ...
     }
 }
