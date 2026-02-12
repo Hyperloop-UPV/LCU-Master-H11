@@ -30,6 +30,9 @@ namespace LCU_Master {
     #error "No PHY selected for Ethernet pinset selection"
     #endif
     #endif
+
+    inline constexpr auto led_operational_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::led_operational);
+    inline constexpr auto led_fault_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::led_fault);
     
     inline constexpr auto spi_req = 
         ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
@@ -72,6 +75,7 @@ namespace LCU_Master {
         #ifdef STLIB_ETH
         eth,
         #endif
+        led_operational_req, led_fault_req,
         spi_req, master_ready_req,
         fault1_req, /*fault2_req, fault3_req, fault4_req, fault5_req,
         fault6_req, fault7_req, fault8_req, fault9_req, fault10_req,*/
@@ -81,6 +85,9 @@ namespace LCU_Master {
         >;
 
     using CommsFrame = SystemFrame<true>;
+
+    inline ST_LIB::DigitalOutputDomain::Instance* led_operational = nullptr;
+    inline ST_LIB::DigitalOutputDomain::Instance* led_fault = nullptr;
 
     inline LPU *lpu1 = nullptr;
     inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;

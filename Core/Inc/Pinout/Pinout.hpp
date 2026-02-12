@@ -11,8 +11,8 @@ namespace Pinout {
     // ============================================
 
     /* LED (Digital Output) */
-    auto &LED_OPERATIONAL = ST_LIB::PG8;
-    auto &LED_FAULT = ST_LIB::PG7;
+    auto &led_operational = ST_LIB::PG8;
+    auto &led_fault = ST_LIB::PG7;
 
     /* Fault Lines (EXTI) */
     // TODO

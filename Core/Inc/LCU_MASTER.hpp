@@ -10,6 +10,11 @@ namespace LCU_Master {
     inline void init() {
         Board::init();
 
+        static auto led_operational_inst = Board::instance_of<led_operational_req>();
+        LCU_Master::led_operational = &led_operational_inst;
+        static auto led_fault_inst = Board::instance_of<led_fault_req>();
+        LCU_Master::led_fault = &led_fault_inst;
+
         /* Comms */
         #ifdef STLIB_ETH
         static auto eth_instance = Board::instance_of<eth>();

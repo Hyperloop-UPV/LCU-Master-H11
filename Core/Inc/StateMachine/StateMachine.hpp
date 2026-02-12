@@ -81,8 +81,24 @@ namespace LCU_StateMachine {
 
         sm.add_enter_action([]()
         {
+            LCU_Master::led_operational->turn_on();
+        }, operational_state);
+
+        sm.add_exit_action([]()
+        {
+            LCU_Master::led_operational->turn_off();
+        }, operational_state);
+
+        sm.add_enter_action([]()
+        {
+            LCU_Master::led_fault->turn_on();
             ErrorHandler("Entered Fault State");
             while(1);
+        }, fault_state);
+        
+        sm.add_exit_action([]()
+        {
+            LCU_Master::led_fault->turn_off();
         }, fault_state);
 
         return sm;
