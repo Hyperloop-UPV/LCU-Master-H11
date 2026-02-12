@@ -14,17 +14,9 @@ namespace Comms {
 
     // Order Variables
     inline float desired_distance = 0.0f;
-    inline uint8_t lpu_id = 0;
     inline float desired_current = 0.0f;
     inline uint32_t pwm_frequency = 0;
     inline float pwm_duty_cycle = 0.0f;
-
-    // Data Variables
-    inline float lcu_vbat[10];
-    inline float lcu_coil_current[10];
-    inline float lcu_airgap[8];
-    inline DataPackets::general_state_machine general_state_machine;
-    inline DataPackets::operational_state_machine operational_state_machine;
 
     inline ST_LIB::SPIDomain::SPIWrapper<LCU_Master::spi_req> *g_spi = nullptr;
     inline ST_LIB::DigitalOutputDomain::Instance *g_master_ready = nullptr;
@@ -40,22 +32,20 @@ namespace Comms {
     inline void start() {
         // Initialize Orders
         OrderPackets::levitate_init(desired_distance);
-        OrderPackets::current_control_init(lpu_id, desired_current);
-        OrderPackets::start_pwm_init(lpu_id, pwm_frequency, pwm_duty_cycle);
-        OrderPackets::stop_pwm_init(lpu_id);
+        OrderPackets::stop_levitate_init();
+        OrderPackets::current_control_init(desired_current);
+        OrderPackets::start_pwm_init(pwm_frequency, pwm_duty_cycle);
+        OrderPackets::stop_pwm_init();
 
         // Initialize Data Packets
         DataPackets::lpu_currents_init(
-            lcu_vbat[0], lcu_vbat[1], lcu_vbat[2], lcu_vbat[3], lcu_vbat[4], 
-            lcu_vbat[5], lcu_vbat[6], lcu_vbat[7], lcu_vbat[8], lcu_vbat[9],
-            lcu_coil_current[0], lcu_coil_current[1], lcu_coil_current[2], lcu_coil_current[3], lcu_coil_current[4],
-            lcu_coil_current[5], lcu_coil_current[6], lcu_coil_current[7], lcu_coil_current[8], lcu_coil_current[9]
+            LCU_Master::lcu_vbat_1,
+            LCU_Master::lcu_coil_current_1
         );
         DataPackets::airgap_measurements_init(
-            lcu_airgap[0], lcu_airgap[1], lcu_airgap[2], lcu_airgap[3], 
-            lcu_airgap[4], lcu_airgap[5], lcu_airgap[6], lcu_airgap[7]
+            LCU_Master::lcu_airgap_1
         );
-        DataPackets::state_machine_init(general_state_machine, operational_state_machine);
+        DataPackets::state_machine_init(LCU_Master::general_state_machine_state, LCU_Master::operational_state_machine_state);
 
         DataPackets::start();
     }
@@ -80,16 +70,20 @@ namespace Comms {
             communications.send_order(OrderID::LEVITATE, desired_distance);
         }
 
+        if (OrderPackets::stop_levitate_flag) {
+            communications.send_order(OrderID::STOP_LEVITATE);
+        }
+
         if (OrderPackets::current_control_flag) {
-            communications.send_order(OrderID::CURRENT_CONTROL, desired_current, 0.0f, lpu_id);
+            communications.send_order(OrderID::CURRENT_CONTROL, desired_current, 0.0f);
         }
 
         if (OrderPackets::start_pwm_flag) {
-            communications.send_order(OrderID::START_PWM, static_cast<float>(pwm_frequency), pwm_duty_cycle, lpu_id);
+            communications.send_order(OrderID::START_PWM, static_cast<float>(pwm_frequency), pwm_duty_cycle);
         }
 
         if (OrderPackets::stop_pwm_flag) {
-            communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f, lpu_id);
+            communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f);
         }
 
         // Synchronize Flags

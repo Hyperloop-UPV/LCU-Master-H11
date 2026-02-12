@@ -7,6 +7,8 @@
 #include "ConfigShared.hpp"
 #include "LPU/LPU.hpp"
 #include "AirgapShared.hpp"
+#include "Communications/Packets/DataPackets.hpp"
+#include "Communications/Packets/OrderPackets.hpp"
 
 using namespace ST_LIB;
 
@@ -93,6 +95,13 @@ namespace LCU_Master {
     inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
 
     inline AirgapBase airgap1;
+
+    inline float &lcu_vbat_1 = lpu1->vbat_v;
+    inline float &lcu_coil_current_1 = lpu1->shunt_v;
+    inline float &lcu_airgap_1 = airgap1.airgap_v;
+
+    inline DataPackets::general_state_machine general_state_machine_state = DataPackets::general_state_machine::Connecting;
+    inline DataPackets::operational_state_machine operational_state_machine_state = DataPackets::operational_state_machine::Idle;
 }
 
 #endif // LCU_MASTER_TYPES_HPP

@@ -21,8 +21,8 @@ namespace LCU_Master {
         Comms::g_eth = &eth_instance;
         #endif
 
-        static auto my_spi_inst = Board::instance_of<LCU_Master::spi_req>();
-        static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(my_spi_inst);
+        static auto my_spi_inst = &Board::instance_of<LCU_Master::spi_req>();
+        static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(*my_spi_inst);
         Comms::g_spi = &my_spi;
 
         static auto my_master_ready_inst = Board::instance_of<LCU_Master::master_ready_req>();
@@ -51,7 +51,9 @@ namespace LCU_Master {
     }
 
     void update() {
-        if (LCU_StateMachine::general_state_machine.get_current_state() == LCU_StateMachine::GeneralStates::Connecting) {
+        general_state_machine_state = LCU_StateMachine::general_state_machine.get_current_state();
+        operational_state_machine_state = LCU_StateMachine::operational_state_machine.get_current_state();
+        if (general_state_machine_state == LCU_StateMachine::GeneralStates::Connecting) {
             LCU_StateMachine::update();
             return;
         }
