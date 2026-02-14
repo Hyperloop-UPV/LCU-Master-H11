@@ -49,12 +49,13 @@ inline void start() {
     );
 
     DataPackets::start();
+    OrderPackets::start();
 }
 
 inline bool is_connected() {
 #ifdef STLIB_ETH
     g_eth->update();
-    return DataPackets::control_station_tcp->is_connected() && spi_connected;
+    return OrderPackets::control_station_tcp->is_connected() && spi_connected;
 #else
     return spi_connected;
 #endif

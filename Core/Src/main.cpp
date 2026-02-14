@@ -6,8 +6,7 @@
 using namespace ST_LIB;
 
 int main(void) {
-    MainBoard::init();
-
+    
     LCU_Master::init();
 
     while (1) {
