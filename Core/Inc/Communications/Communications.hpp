@@ -28,6 +28,9 @@ volatile bool send_flag = false;
 volatile bool spi_flag = false;
 volatile bool receive_flag = false;
 volatile bool operation_flag = false;
+inline uint32_t last_spi_packet_ms = 0;
+inline bool spi_connected = false;
+constexpr uint32_t SPI_TIMEOUT_MS = 1000;
 
 inline void start() {
     // Initialize Orders
@@ -51,9 +54,9 @@ inline void start() {
 inline bool is_connected() {
 #ifdef STLIB_ETH
     g_eth->update();
-    return DataPackets::control_station_tcp->is_connected();
+    return DataPackets::control_station_tcp->is_connected() && spi_connected;
 #else
-    return true; // If no Ethernet, assume always connected for SPI
+    return spi_connected;
 #endif
 }
 
@@ -85,8 +88,10 @@ inline void update() {
         communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f);
     }
 
-    // Synchronize Flags
-    communications.update_flag_synchronization();
+    // SPI Timeout Logic
+    if (spi_connected && HAL_GetTick() - last_spi_packet_ms > SPI_TIMEOUT_MS) {
+        spi_connected = false;
+    }
 
     // SPI Communication Logic
     if (!operation_flag) {
@@ -106,6 +111,15 @@ inline void update() {
         LCU_Master::CommsFrame::update_rx(&receive_flag);
     } else if (receive_flag) {
         receive_flag = false;
+
+        if (communications.status_packet.start_byte == StatusPacket::START_BYTE &&
+            communications.status_packet.end_byte == StatusPacket::END_BYTE) {
+            
+            last_spi_packet_ms = HAL_GetTick();
+            spi_connected = true;
+            communications.update_flag_synchronization();
+        }
+
         operation_flag = false;
     }
 }
