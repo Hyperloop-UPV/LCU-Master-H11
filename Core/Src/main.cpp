@@ -8,14 +8,14 @@ using namespace ST_LIB;
 int main(void) {
     MainBoard::init();
 
-  LCU_Master::init();
+    LCU_Master::init();
 
-  while (1) {
-    LCU_Master::update();
-  }
+    while (1) {
+        LCU_Master::update();
+    }
 }
 void Error_Handler(void) {
-  ErrorHandler("HAL error handler triggered");
-  while (1) {
-  }
+    ErrorHandler("HAL error handler triggered");
+    while (1) {
+    }
 }
