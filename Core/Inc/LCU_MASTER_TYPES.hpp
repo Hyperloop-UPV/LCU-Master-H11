@@ -38,11 +38,11 @@ namespace LCU_Master {
     
     inline constexpr auto spi_req = 
         ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
-            ST_LIB::SPIDomain::SPIMode::SLAVE, ST_LIB::SPIDomain::SPIPeripheral::spi3,
-            uint32_t(-1), Pinout::spi_sck, Pinout::spi_miso, Pinout::spi_mosi, spi_conf
-            // -1 max_baudrate so that it take the maximum it can
+            ST_LIB::SPIDomain::SPIMode::MASTER, ST_LIB::SPIDomain::SPIPeripheral::spi3,
+            10000, Pinout::spi_sck, Pinout::spi_miso, Pinout::spi_mosi, spi_conf
+            // 10khz for now, should test later higher speeds
         );
-    inline constexpr auto master_ready_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::spi_nss);
+    inline constexpr auto slave_ready_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::spi_nss);
 
 
     inline constexpr auto fault1_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault1);
@@ -78,7 +78,7 @@ namespace LCU_Master {
         eth,
         #endif
         led_operational_req, led_fault_req,
-        spi_req, master_ready_req,
+        spi_req, slave_ready_req,
         fault1_req, /*fault2_req, fault3_req, fault4_req, fault5_req,
         fault6_req, fault7_req, fault8_req, fault9_req, fault10_req,*/
         ready1_req, /*ready2_req, ready3_req, ready4_req, ready5_req,

@@ -25,8 +25,8 @@ namespace LCU_Master {
         static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(*my_spi_inst);
         Comms::g_spi = &my_spi;
 
-        static auto my_master_ready_inst = Board::instance_of<LCU_Master::master_ready_req>();
-        Comms::g_master_ready = &my_master_ready_inst;
+        static auto my_slave_ready_inst = Board::instance_of<LCU_Master::slave_ready_req>();
+        Comms::g_slave_ready = &my_slave_ready_inst;
 
         /* LPU */
         auto& ready_pin1 = Board::instance_of<ready1_req>();
@@ -48,6 +48,7 @@ namespace LCU_Master {
         Comms::start();
         Scheduler::start();
         LCU_StateMachine::start();
+        MDMA::start();
     }
 
     void update() {

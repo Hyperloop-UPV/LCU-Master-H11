@@ -19,7 +19,7 @@ namespace Comms {
     inline float pwm_duty_cycle = 0.0f;
 
     inline ST_LIB::SPIDomain::SPIWrapper<LCU_Master::spi_req> *g_spi = nullptr;
-    inline ST_LIB::DigitalOutputDomain::Instance *g_master_ready = nullptr;
+    inline ST_LIB::DigitalInputDomain::Instance *g_slave_ready = nullptr;
     #ifdef STLIB_ETH
     inline ST_LIB::EthernetDomain::Instance *g_eth = nullptr;
     #endif
@@ -94,11 +94,11 @@ namespace Comms {
             operation_flag = true;
             LCU_Master::CommsFrame::update_tx(&send_flag);
         } else if (send_flag) {
-            send_flag = false;
-            g_spi->transceive(LCU_Master::CommsFrame::tx_buffer, LCU_Master::CommsFrame::rx_buffer, &spi_flag);
-            g_master_ready->turn_on();
+            if (g_slave_ready->read() == GPIO_PIN_SET) {
+                send_flag = false;
+                g_spi->transceive_DMA(LCU_Master::CommsFrame::tx_buffer, LCU_Master::CommsFrame::rx_buffer, &spi_flag);
+            }
         } else if (spi_flag) {
-            g_master_ready->turn_off();
             spi_flag = false;
             LCU_Master::CommsFrame::update_rx(&receive_flag);
         } else if (receive_flag) {
