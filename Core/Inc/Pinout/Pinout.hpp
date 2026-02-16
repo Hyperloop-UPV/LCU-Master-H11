@@ -15,7 +15,8 @@ auto& led_operational = ST_LIB::PG8;
 auto& led_fault = ST_LIB::PG7;
 
 /* Fault Lines (EXTI) */
-// TODO
+auto& master_fault = ST_LIB::PE0;
+auto& slave_fault = ST_LIB::PE1;
 
 // ============================================
 // LPU

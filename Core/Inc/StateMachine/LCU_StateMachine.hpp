@@ -12,7 +12,8 @@ using OperationalStates = DataPackets::operational_state_machine;
 
 static constexpr auto connecting_state = make_state(
     GeneralStates::Connecting,
-    Transition<GeneralStates>{GeneralStates::Operational, []() { return Comms::is_connected(); }}
+    Transition<GeneralStates>{GeneralStates::Operational, []() { return Comms::is_connected(); }},
+    Transition<GeneralStates>{GeneralStates::Fault, []() { return LCU_Master::slave_fault_triggered; }}
 );
 
 static constexpr auto operational_state = make_state(
@@ -20,7 +21,7 @@ static constexpr auto operational_state = make_state(
     Transition<GeneralStates>{
         GeneralStates::Fault,
         []() {
-            return !Comms::is_connected(); // || other things
+            return !Comms::is_connected() || LCU_Master::slave_fault_triggered; // || other things
         }
     }
 );

@@ -45,6 +45,15 @@ inline constexpr auto led_operational_req =
     ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::led_operational);
 inline constexpr auto led_fault_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::led_fault);
 
+bool slave_fault_triggered = false;
+
+inline constexpr auto master_fault_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::master_fault);
+inline constexpr auto slave_fault_req = ST_LIB::EXTIDomain::Device(
+    Pinout::slave_fault,
+    ST_LIB::EXTIDomain::Trigger::RISING_EDGE,
+    []() { slave_fault_triggered = true; }
+);
+
 inline constexpr auto spi_req =
     ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
         ST_LIB::SPIDomain::SPIMode::MASTER,
@@ -92,6 +101,8 @@ using Board = ST_LIB::Board<
 #endif
     led_operational_req,
     led_fault_req,
+    master_fault_req,
+    slave_fault_req,
     spi_req,
     slave_ready_req,
     fault1_req, /*fault2_req, fault3_req, fault4_req, fault5_req,
@@ -105,6 +116,8 @@ using CommsFrame = SystemFrame<true>;
 
 inline ST_LIB::DigitalOutputDomain::Instance* led_operational = nullptr;
 inline ST_LIB::DigitalOutputDomain::Instance* led_fault = nullptr;
+
+inline ST_LIB::DigitalOutputDomain::Instance* master_fault = nullptr;
 
 inline LPU* lpu1 = nullptr;
 inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
