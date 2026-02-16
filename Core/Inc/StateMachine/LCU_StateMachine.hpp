@@ -1,5 +1,5 @@
-#ifndef STATE_MACHINE_HPP
-#define STATE_MACHINE_HPP
+#ifndef LCU_STATE_MACHINE_HPP
+#define LCU_STATE_MACHINE_HPP
 
 #include "C++Utilities/CppImports.hpp"
 #include "LCU_MASTER_TYPES.hpp"
@@ -96,4 +96,4 @@ void start() { general_state_machine.start(); }
 void update() { general_state_machine.check_transitions(); }
 }; // namespace LCU_StateMachine
 
-#endif // STATE_MACHINE_HPP
+#endif // LCU_STATE_MACHINE_HPP

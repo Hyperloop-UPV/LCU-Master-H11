@@ -4,7 +4,7 @@
 #include "LCU_MASTER_TYPES.hpp"
 #include "ST-LIB.hpp"
 #include "Communications/Communications.hpp"
-#include "StateMachine/StateMachine.hpp"
+#include "StateMachine/LCU_StateMachine.hpp"
 
 namespace LCU_Master {
 inline void init() {
