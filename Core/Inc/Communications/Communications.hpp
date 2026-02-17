@@ -12,12 +12,6 @@
 namespace Comms {
 inline CommunicationsBase communications;
 
-// Order Variables
-inline float desired_distance = 0.0f;
-inline float desired_current = 0.0f;
-inline uint32_t pwm_frequency = 0;
-inline float pwm_duty_cycle = 0.0f;
-
 inline ST_LIB::SPIDomain::SPIWrapper<LCU_Master::spi_req>* g_spi = nullptr;
 inline ST_LIB::DigitalInputDomain::Instance* g_slave_ready = nullptr;
 #ifdef STLIB_ETH
@@ -28,17 +22,23 @@ volatile bool send_flag = false;
 volatile bool spi_flag = false;
 volatile bool receive_flag = false;
 volatile bool operation_flag = false;
+bool pending_master_reset = false;
 inline uint32_t last_spi_packet_ms = 0;
 inline bool spi_connected = false;
 constexpr uint32_t SPI_TIMEOUT_MS = 1000;
 
 inline void start() {
     // Initialize Orders
-    OrderPackets::levitate_init(desired_distance);
+    OrderPackets::levitate_init(communications.command_packet.levitate.desired_distance);
     OrderPackets::stop_levitate_init();
-    OrderPackets::current_control_init(desired_current);
-    OrderPackets::start_pwm_init(pwm_frequency, pwm_duty_cycle);
+    OrderPackets::current_control_init(communications.command_packet.current_control.desired_current);
+    OrderPackets::start_pwm_init(communications.command_packet.pwm.frequency, communications.command_packet.pwm.duty_cycle);
     OrderPackets::stop_pwm_init();
+    OrderPackets::start_control_loop_init();
+    OrderPackets::stop_control_loop_init();
+    OrderPackets::set_fixed_vbat_init(communications.command_packet.fixed_vbat.fixed_vbat);
+    OrderPackets::unset_fixed_vbat_init();
+    OrderPackets::reset_init();
 
     // Initialize Data Packets
     DataPackets::lpu_currents_init(LCU_Master::lpu1->vbat_v, LCU_Master::lpu1->shunt_v);
@@ -67,20 +67,26 @@ inline void clear_flags() {
     OrderPackets::current_control_flag = false;
     OrderPackets::start_pwm_flag = false;
     OrderPackets::stop_pwm_flag = false;
+    OrderPackets::start_control_loop_flag = false;
+    OrderPackets::stop_control_loop_flag = false;
+    OrderPackets::set_fixed_vbat_flag = false;
+    OrderPackets::unset_fixed_vbat_flag = false;
+    OrderPackets::set_control_params_flag = false;
+    OrderPackets::reset_slave_flag = false;
+    OrderPackets::reset_master_flag = false;
+    OrderPackets::reset_flag = false;
 }
 
-// Must later clear flags
 inline void update() {
 #ifdef STLIB_ETH
     g_eth->update();
 #endif
 
-    // SPI Communication Logic
+    //SPI Communication Logic
     if (!operation_flag) {
-        
+ 
         if (OrderPackets::levitate_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::LEVITATE;
-            communications.command_packet.levitate.desired_distance = desired_distance;
         } 
         
         if (OrderPackets::stop_levitate_flag) {
@@ -89,19 +95,49 @@ inline void update() {
 
         if (OrderPackets::current_control_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::CURRENT_CONTROL;
-            communications.command_packet.current_control.desired_current = desired_current;
             communications.command_packet.current_control.lpu_id_bitmask = 0x01; 
         } 
 
         if (OrderPackets::start_pwm_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::PWM;
-            communications.command_packet.pwm.frequency = static_cast<float>(pwm_frequency);
-            communications.command_packet.pwm.duty_cycle = pwm_duty_cycle;
             communications.command_packet.pwm.lpu_id_bitmask = 0x01;
         } 
         
         if (OrderPackets::stop_pwm_flag) {
             communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::PWM;
+        }
+
+        if (OrderPackets::start_control_loop_flag) {
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::CONTROL_LOOP;
+        }
+
+        if (OrderPackets::stop_control_loop_flag) {
+            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::CONTROL_LOOP;
+        }
+
+        if (OrderPackets::set_fixed_vbat_flag) {
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::FIXED_VBAT;
+        }
+
+        if (OrderPackets::unset_fixed_vbat_flag) {
+            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::FIXED_VBAT;
+        }
+
+        if (OrderPackets::set_control_params_flag) {
+            // TODO
+        }
+
+        if (OrderPackets::reset_master_flag) {
+            pending_master_reset = true;
+        }
+
+        if (OrderPackets::reset_slave_flag) {
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::RESET_SLAVE;
+        }
+
+        if (OrderPackets::reset_flag) {
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::RESET_SLAVE;
+            pending_master_reset = true;
         }
 
         clear_flags();
@@ -125,12 +161,24 @@ inline void update() {
                 &spi_flag
             );
         }
+        
     } else if (spi_flag) {
         spi_flag = false;
+        
+        if ((communications.command_packet.flags & CommandFlags::RESET_SLAVE) == CommandFlags::RESET_SLAVE) {
+            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::RESET_SLAVE;
+        }
+
+        if (pending_master_reset) {
+            pending_master_reset = false;
+            HAL_NVIC_SystemReset();
+        }
+
         LCU_Master::CommsFrame::update_rx(&receive_flag);
         while (!receive_flag) { // Busy wait for synchronization
             MDMA::update();
         }
+
     } else if (receive_flag) {
         receive_flag = false;
 
