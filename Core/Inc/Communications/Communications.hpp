@@ -41,8 +41,8 @@ inline void start() {
     OrderPackets::stop_pwm_init();
 
     // Initialize Data Packets
-    DataPackets::lpu_currents_init(LCU_Master::lcu_vbat_1, LCU_Master::lcu_coil_current_1);
-    DataPackets::airgap_measurements_init(LCU_Master::lcu_airgap_1);
+    DataPackets::lpu_currents_init(LCU_Master::lpu1->vbat_v, LCU_Master::lpu1->shunt_v);
+    DataPackets::airgap_measurements_init(LCU_Master::airgap1.airgap_v);
     DataPackets::state_machine_init(
         LCU_Master::general_state_machine_state,
         LCU_Master::operational_state_machine_state
@@ -61,43 +61,57 @@ inline bool is_connected() {
 #endif
 }
 
+inline void clear_flags() {
+    OrderPackets::levitate_flag = false;
+    OrderPackets::stop_levitate_flag = false;
+    OrderPackets::current_control_flag = false;
+    OrderPackets::start_pwm_flag = false;
+    OrderPackets::stop_pwm_flag = false;
+}
+
 // Must later clear flags
 inline void update() {
 #ifdef STLIB_ETH
     g_eth->update();
 #endif
 
-    // Process TCP/UDP Orders
-    if (OrderPackets::levitate_flag) {
-        communications.send_order(OrderID::LEVITATE, desired_distance);
-    }
-
-    if (OrderPackets::stop_levitate_flag) {
-        communications.send_order(OrderID::STOP_LEVITATE);
-    }
-
-    if (OrderPackets::current_control_flag) {
-        communications.send_order(OrderID::CURRENT_CONTROL, desired_current, 0.0f);
-    }
-
-    if (OrderPackets::start_pwm_flag) {
-        communications
-            .send_order(OrderID::START_PWM, static_cast<float>(pwm_frequency), pwm_duty_cycle);
-    }
-
-    if (OrderPackets::stop_pwm_flag) {
-        communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f);
-    }
-
-    // SPI Timeout Logic
-    if (spi_connected && HAL_GetTick() - last_spi_packet_ms > SPI_TIMEOUT_MS) {
-        spi_connected = false;
-    }
-
     // SPI Communication Logic
     if (!operation_flag) {
+        // Process TCP/UDP Orders BEFORE packing the TX buffer
+        if (OrderPackets::levitate_flag) {
+            communications.send_order(OrderID::LEVITATE, desired_distance);
+        }
+
+        if (OrderPackets::stop_levitate_flag) {
+            communications.send_order(OrderID::STOP_LEVITATE);
+        }
+
+        if (OrderPackets::current_control_flag) {
+            communications.send_order(OrderID::CURRENT_CONTROL, desired_current, 0.0f);
+        }
+
+        if (OrderPackets::start_pwm_flag) {
+            communications
+                .send_order(OrderID::START_PWM, static_cast<float>(pwm_frequency), pwm_duty_cycle);
+        }
+
+        if (OrderPackets::stop_pwm_flag) {
+            communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f);
+        }
+
+        // Clear flags immediately after processing them
+        clear_flags();
+
+        // // SPI Timeout Logic
+        // if (spi_connected && HAL_GetTick() - last_spi_packet_ms > SPI_TIMEOUT_MS) {
+        //     spi_connected = false;
+        // }
+
         operation_flag = true;
         LCU_Master::CommsFrame::update_tx(&send_flag);
+        while (!send_flag) { // Busy wait for synchronization
+            MDMA::update();
+        }
     } else if (send_flag) {
         if (g_slave_ready->read() == GPIO_PIN_SET) {
             send_flag = false;
@@ -110,6 +124,9 @@ inline void update() {
     } else if (spi_flag) {
         spi_flag = false;
         LCU_Master::CommsFrame::update_rx(&receive_flag);
+        while (!receive_flag) { // Busy wait for synchronization
+            MDMA::update();
+        }
     } else if (receive_flag) {
         receive_flag = false;
 
@@ -123,13 +140,6 @@ inline void update() {
 
         operation_flag = false;
     }
-}
-
-inline void clear_flags() {
-    OrderPackets::levitate_flag = false;
-    OrderPackets::current_control_flag = false;
-    OrderPackets::start_pwm_flag = false;
-    OrderPackets::stop_pwm_flag = false;
 }
 }; // namespace Comms
 

@@ -20,7 +20,7 @@ inline void init() {
 
 /* Comms */
 #ifdef STLIB_ETH
-    static auto eth_instance = Board::instance_of<eth>();
+    static auto& eth_instance = Board::instance_of<eth>();
     Comms::g_eth = &eth_instance;
 #endif
 
@@ -28,7 +28,7 @@ inline void init() {
     static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(*my_spi_inst);
     Comms::g_spi = &my_spi;
 
-    static auto my_slave_ready_inst = Board::instance_of<LCU_Master::slave_ready_req>();
+    auto& my_slave_ready_inst = Board::instance_of<LCU_Master::slave_ready_req>();
     Comms::g_slave_ready = &my_slave_ready_inst;
 
     /* LPU */
@@ -49,27 +49,22 @@ inline void init() {
 
     // STLIB::start();
     CommsFrame::init(Comms::communications, lpu1_inst, Comms::communications, lpu1_inst, airgap1);
-    Comms::start();
     Scheduler::start();
     LCU_StateMachine::start();
     MDMA::start();
+    Comms::start();
 }
 
 void update() {
-    general_state_machine_state = LCU_StateMachine::general_state_machine.get_current_state();
-    operational_state_machine_state =
-        LCU_StateMachine::operational_state_machine.get_current_state();
-    if (general_state_machine_state == LCU_StateMachine::GeneralStates::Connecting) {
-        LCU_StateMachine::update();
-        return;
-    }
+    // general_state_machine_state = LCU_StateMachine::general_state_machine.get_current_state();
+    // operational_state_machine_state =
+    //     LCU_StateMachine::operational_state_machine.get_current_state();
 
     Comms::update();
     LCU_StateMachine::update();
     MDMA::update();
     Scheduler::update();
-    // do things with flags
-    Comms::clear_flags();
+    // Flags are now cleared inside Comms::update()
     // ...
 }
 } // namespace LCU_Master

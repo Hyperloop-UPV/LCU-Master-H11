@@ -58,7 +58,7 @@ inline constexpr auto spi_req =
     ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
         ST_LIB::SPIDomain::SPIMode::MASTER,
         ST_LIB::SPIDomain::SPIPeripheral::spi3,
-        10000,
+        1000000,
         Pinout::spi_sck,
         Pinout::spi_miso,
         Pinout::spi_mosi,
@@ -124,9 +124,6 @@ inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instanc
 
 inline AirgapBase airgap1;
 
-inline float& lcu_vbat_1 = lpu1->vbat_v;
-inline float& lcu_coil_current_1 = lpu1->shunt_v;
-inline float& lcu_airgap_1 = airgap1.airgap_v;
 
 inline DataPackets::general_state_machine general_state_machine_state =
     DataPackets::general_state_machine::Connecting;

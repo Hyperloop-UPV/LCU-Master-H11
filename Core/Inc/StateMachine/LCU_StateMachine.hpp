@@ -81,8 +81,7 @@ static inline constinit auto general_state_machine = []() consteval {
         []() {
             LCU_Master::led_fault->turn_on();
             ErrorHandler("Entered Fault State");
-            while (1)
-                ;
+            // while (1);
         },
         fault_state
     );
