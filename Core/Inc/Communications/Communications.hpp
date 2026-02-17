@@ -77,29 +77,33 @@ inline void update() {
 
     // SPI Communication Logic
     if (!operation_flag) {
-        // Process TCP/UDP Orders BEFORE packing the TX buffer
+        
         if (OrderPackets::levitate_flag) {
-            communications.send_order(OrderID::LEVITATE, desired_distance);
-        }
-
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::LEVITATE;
+            communications.command_packet.levitate.desired_distance = desired_distance;
+        } 
+        
         if (OrderPackets::stop_levitate_flag) {
-            communications.send_order(OrderID::STOP_LEVITATE);
+             communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::LEVITATE;
         }
 
         if (OrderPackets::current_control_flag) {
-            communications.send_order(OrderID::CURRENT_CONTROL, desired_current, 0.0f);
-        }
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::CURRENT_CONTROL;
+            communications.command_packet.current_control.desired_current = desired_current;
+            communications.command_packet.current_control.lpu_id_bitmask = 0x01; 
+        } 
 
         if (OrderPackets::start_pwm_flag) {
-            communications
-                .send_order(OrderID::START_PWM, static_cast<float>(pwm_frequency), pwm_duty_cycle);
-        }
-
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::PWM;
+            communications.command_packet.pwm.frequency = static_cast<float>(pwm_frequency);
+            communications.command_packet.pwm.duty_cycle = pwm_duty_cycle;
+            communications.command_packet.pwm.lpu_id_bitmask = 0x01;
+        } 
+        
         if (OrderPackets::stop_pwm_flag) {
-            communications.send_order(OrderID::STOP_PWM, 0.0f, 0.0f);
+            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::PWM;
         }
 
-        // Clear flags immediately after processing them
         clear_flags();
 
         // // SPI Timeout Logic
@@ -135,7 +139,6 @@ inline void update() {
             
             last_spi_packet_ms = HAL_GetTick();
             spi_connected = true;
-            communications.update_flag_synchronization();
         }
 
         operation_flag = false;
