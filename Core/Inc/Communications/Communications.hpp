@@ -27,22 +27,35 @@ inline uint32_t last_spi_packet_ms = 0;
 inline bool spi_connected = false;
 constexpr uint32_t SPI_TIMEOUT_MS = 1000;
 
+float desired_levitation_distance = 0.0f;
+float desired_current = 0.0f;
+uint32_t pwm_frequency = 0;
+float pwm_duty_cycle = 0.0f;
+float fixed_vbat = 0.0f;
+
+float vbat = 5.0f;
+float shunt = 0.0f;
+float airgap = 0.0f;
+
 inline void start() {
     // Initialize Orders
-    OrderPackets::levitate_init(communications.command_packet.levitate.desired_distance);
+    OrderPackets::levitate_init(desired_levitation_distance);
     OrderPackets::stop_levitate_init();
-    OrderPackets::current_control_init(communications.command_packet.current_control.desired_current);
-    OrderPackets::start_pwm_init(communications.command_packet.pwm.frequency, communications.command_packet.pwm.duty_cycle);
+    OrderPackets::current_control_init(desired_current);
+    OrderPackets::start_pwm_init(pwm_frequency, pwm_duty_cycle);
     OrderPackets::stop_pwm_init();
     OrderPackets::start_control_loop_init();
     OrderPackets::stop_control_loop_init();
-    OrderPackets::set_fixed_vbat_init(communications.command_packet.fixed_vbat.fixed_vbat);
+    OrderPackets::set_fixed_vbat_init(fixed_vbat);
     OrderPackets::unset_fixed_vbat_init();
+    OrderPackets::set_control_params_init();
+    OrderPackets::reset_master_init();
+    OrderPackets::reset_slave_init();
     OrderPackets::reset_init();
 
     // Initialize Data Packets
-    DataPackets::lpu_currents_init(LCU_Master::lpu1->vbat_v, LCU_Master::lpu1->shunt_v);
-    DataPackets::airgap_measurements_init(LCU_Master::airgap1.airgap_v);
+    DataPackets::lpu_currents_init(vbat, shunt);
+    DataPackets::airgap_measurements_init(airgap);
     DataPackets::state_machine_init(
         LCU_Master::general_state_machine_state,
         LCU_Master::operational_state_machine_state
@@ -87,20 +100,24 @@ inline void update() {
  
         if (OrderPackets::levitate_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::LEVITATE;
+            communications.command_packet.levitate.desired_distance = desired_levitation_distance;
         } 
         
         if (OrderPackets::stop_levitate_flag) {
-             communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::LEVITATE;
+            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::LEVITATE;
         }
 
         if (OrderPackets::current_control_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::CURRENT_CONTROL;
             communications.command_packet.current_control.lpu_id_bitmask = 0x01; 
+            communications.command_packet.current_control.desired_current = desired_current;
         } 
 
         if (OrderPackets::start_pwm_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::PWM;
             communications.command_packet.pwm.lpu_id_bitmask = 0x01;
+            communications.command_packet.pwm.frequency = pwm_frequency;
+            communications.command_packet.pwm.duty_cycle = pwm_duty_cycle;
         } 
         
         if (OrderPackets::stop_pwm_flag) {
@@ -117,6 +134,7 @@ inline void update() {
 
         if (OrderPackets::set_fixed_vbat_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::FIXED_VBAT;
+            communications.command_packet.fixed_vbat.fixed_vbat = fixed_vbat;
         }
 
         if (OrderPackets::unset_fixed_vbat_flag) {
@@ -151,6 +169,7 @@ inline void update() {
         LCU_Master::CommsFrame::update_tx(&send_flag);
         while (!send_flag) { // Busy wait for synchronization
             MDMA::update();
+            g_eth->update();
         }
     } else if (send_flag) {
         if (g_slave_ready->read() == GPIO_PIN_SET) {
@@ -177,6 +196,7 @@ inline void update() {
         LCU_Master::CommsFrame::update_rx(&receive_flag);
         while (!receive_flag) { // Busy wait for synchronization
             MDMA::update();
+            g_eth->update();
         }
 
     } else if (receive_flag) {
@@ -190,6 +210,9 @@ inline void update() {
         }
 
         operation_flag = false;
+        vbat = LCU_Master::lpu1->vbat_v;
+        shunt = LCU_Master::lpu1->shunt_v;
+        airgap = LCU_Master::airgap1.airgap_v;
     }
 }
 }; // namespace Comms

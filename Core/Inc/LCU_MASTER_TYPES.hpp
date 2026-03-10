@@ -122,7 +122,7 @@ inline ST_LIB::DigitalOutputDomain::Instance* master_fault = nullptr;
 inline LPU* lpu1 = nullptr;
 inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
 
-inline AirgapBase airgap1;
+[[gnu::used]] inline AirgapBase airgap1;
 
 
 inline DataPackets::general_state_machine general_state_machine_state =

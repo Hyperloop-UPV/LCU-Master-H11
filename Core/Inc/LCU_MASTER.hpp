@@ -10,13 +10,13 @@ namespace LCU_Master {
 inline void init() {
     Board::init();
 
-    static auto led_operational_inst = Board::instance_of<led_operational_req>();
-    LCU_Master::led_operational = &led_operational_inst;
-    static auto led_fault_inst = Board::instance_of<led_fault_req>();
-    LCU_Master::led_fault = &led_fault_inst;
+    static auto led_operational_inst = &Board::instance_of<led_operational_req>();
+    LCU_Master::led_operational = led_operational_inst;
+    static auto led_fault_inst = &Board::instance_of<led_fault_req>();
+    LCU_Master::led_fault = led_fault_inst;
 
-    static auto master_fault_inst = Board::instance_of<master_fault_req>();
-    LCU_Master::master_fault = &master_fault_inst;
+    static auto master_fault_inst = &Board::instance_of<master_fault_req>();
+    LCU_Master::master_fault = master_fault_inst;
 
 /* Comms */
 #ifdef STLIB_ETH
@@ -28,24 +28,23 @@ inline void init() {
     static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(*my_spi_inst);
     Comms::g_spi = &my_spi;
 
-    auto& my_slave_ready_inst = Board::instance_of<LCU_Master::slave_ready_req>();
-    Comms::g_slave_ready = &my_slave_ready_inst;
+    auto my_slave_ready_inst = &Board::instance_of<LCU_Master::slave_ready_req>();
+    Comms::g_slave_ready = my_slave_ready_inst;
 
     /* LPU */
-    auto& ready_pin1 = Board::instance_of<ready1_req>();
-    auto& fault_pin1 = Board::instance_of<fault1_req>();
-    static LPU lpu1_inst(ready_pin1, fault_pin1);
+    auto ready_pin1 = &Board::instance_of<ready1_req>();
+    auto fault_pin1 = &Board::instance_of<fault1_req>();
+    static LPU lpu1_inst(*ready_pin1, *fault_pin1);
     LCU_Master::lpu1 = &lpu1_inst;
 
-    static auto& rst_pin1 = Board::instance_of<rst1_req>();
+    static auto rst_pin1 = &Board::instance_of<rst1_req>();
     static LpuArray lpu_array_inst(
         std::make_tuple(std::ref(lpu1_inst)),
-        std::make_tuple(std::ref(rst_pin1))
+        std::make_tuple(std::ref(*rst_pin1))
     );
     LCU_Master::lpu_array = &lpu_array_inst;
 
-    /* Tie comms variables to packets */
-    // TODO
+    (void)airgap1;
 
     // STLIB::start();
     CommsFrame::init(Comms::communications, lpu1_inst, Comms::communications, lpu1_inst, airgap1);
