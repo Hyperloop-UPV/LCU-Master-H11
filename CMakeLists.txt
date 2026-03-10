@@ -79,6 +79,7 @@ add_custom_command(
   DEPENDS
   ${GENERATOR_SCRIPT}
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/Packet_generation.py
+  ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/Packet_descriptions.py
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/DataTemplate.hpp
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/OrderTemplate.hpp
   ${GENERATOR_JSONS}
@@ -131,6 +132,16 @@ if(CMAKE_CROSSCOMPILING)
     list(REMOVE_ITEM SOURCE_CPP ${EXAMPLE_CPP})
   endif()
 
+  set(EXAMPLE_SELECTED OFF)
+  # If an EXAMPLE_* macro is injected through CXX flags, mark the build as
+  # example-selected so main.cpp can disable only the default main().
+  if(BUILD_EXAMPLES)
+    if(CMAKE_CXX_FLAGS MATCHES "(^|[ \t])-DEXAMPLE_[A-Za-z0-9_]+")
+      set(EXAMPLE_SELECTED ON)
+      message(STATUS "Template project: EXAMPLE_* detected, disabling default main()")
+    endif()
+  endif()
+
   add_executable(${EXECUTABLE}
     ${SOURCE_C}
     ${SOURCE_CPP}
@@ -152,6 +163,7 @@ if(CMAKE_CROSSCOMPILING)
   )
 
   target_compile_definitions(${EXECUTABLE} PRIVATE
+    $<$<BOOL:${EXAMPLE_SELECTED}>:EXAMPLE_SELECTED>
     $<$<BOOL:${USE_ETHERNET}>:STLIB_ETH>
     $<IF:$<BOOL:${TARGET_NUCLEO}>,NUCLEO,BOARD>
     $<IF:$<BOOL:${TARGET_NUCLEO}>,HSE_VALUE=8000000,HSE_VALUE=25000000>

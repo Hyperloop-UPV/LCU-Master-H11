@@ -98,6 +98,7 @@ tools/*.bin
 # Log files
 *.log
 
-# Auto gen
-Core/Src/Runes/generated_metadata.cpp
-Core/Inc/Communications/Packets/*.hpp
+# Generated packet headers
+/Core/Inc/Communications/Packets/DataPackets.hpp
+/Core/Inc/Communications/Packets/OrderPackets.hpp
+/Core/Src/Runes/generated_metadata.cpp
