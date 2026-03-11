@@ -65,7 +65,13 @@ inline constexpr auto spi_req =
         spi_conf
         // 10khz for now, should test later higher speeds
     );
-inline constexpr auto slave_ready_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::spi_nss);
+bool slave_ready_triggered = false;
+
+inline constexpr auto slave_ready_req = ST_LIB::EXTIDomain::Device(
+    Pinout::spi_nss,
+    ST_LIB::EXTIDomain::Trigger::RISING_EDGE,
+    []() { slave_ready_triggered = true; }
+);
 
 inline constexpr auto fault1_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault1);
 // inline constexpr auto fault2_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault2);

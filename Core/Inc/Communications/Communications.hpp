@@ -13,7 +13,7 @@ namespace Comms {
 inline CommunicationsBase communications;
 
 inline ST_LIB::SPIDomain::SPIWrapper<LCU_Master::spi_req>* g_spi = nullptr;
-inline ST_LIB::DigitalInputDomain::Instance* g_slave_ready = nullptr;
+inline ST_LIB::EXTIDomain::Instance* g_slave_ready = nullptr;
 #ifdef STLIB_ETH
 inline ST_LIB::EthernetDomain::Instance* g_eth = nullptr;
 #endif
@@ -172,7 +172,9 @@ inline void update() {
             g_eth->update();
         }
     } else if (send_flag) {
-        if (g_slave_ready->read() == GPIO_PIN_SET) {
+        if (LCU_Master::slave_ready_triggered ||
+            (!spi_connected && g_slave_ready->read() == GPIO_PIN_SET)) {
+            LCU_Master::slave_ready_triggered = false;
             send_flag = false;
             g_spi->transceive_DMA(
                 LCU_Master::CommsFrame::tx_buffer,
@@ -198,6 +200,7 @@ inline void update() {
             MDMA::update();
             g_eth->update();
         }
+        __DMB(); // Ensure MDMA writes to status_packet are visible before CPU reads them
 
     } else if (receive_flag) {
         receive_flag = false;
@@ -207,6 +210,8 @@ inline void update() {
             
             last_spi_packet_ms = HAL_GetTick();
             spi_connected = true;
+        } else {
+            __NOP();
         }
 
         operation_flag = false;

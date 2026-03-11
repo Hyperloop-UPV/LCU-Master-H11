@@ -28,8 +28,8 @@ inline void init() {
     static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(*my_spi_inst);
     Comms::g_spi = &my_spi;
 
-    auto my_slave_ready_inst = &Board::instance_of<LCU_Master::slave_ready_req>();
-    Comms::g_slave_ready = my_slave_ready_inst;
+    static auto& slave_ready_inst = Board::instance_of<LCU_Master::slave_ready_req>();
+    Comms::g_slave_ready = &slave_ready_inst;
 
     /* LPU */
     auto ready_pin1 = &Board::instance_of<ready1_req>();
