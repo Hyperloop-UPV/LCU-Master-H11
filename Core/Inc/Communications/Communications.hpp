@@ -201,14 +201,13 @@ inline void update() {
             
             last_spi_packet_ms = HAL_GetTick();
             spi_connected = true;
-        } else {
-            __NOP();
+
+            vbat = LCU_Master::lpu1->vbat_v;
+            shunt = LCU_Master::lpu1->shunt_v;
+            airgap = LCU_Master::airgap1.airgap_v;
         }
 
         operation_flag = false;
-        vbat = LCU_Master::lpu1->vbat_v;
-        shunt = LCU_Master::lpu1->shunt_v;
-        airgap = LCU_Master::airgap1.airgap_v;
     }
 }
 }; // namespace Comms
