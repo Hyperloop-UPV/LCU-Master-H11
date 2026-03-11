@@ -167,10 +167,6 @@ inline void update() {
 
         operation_flag = true;
         LCU_Master::CommsFrame::update_tx(&send_flag);
-        while (!send_flag) { // Busy wait for synchronization
-            MDMA::update();
-            g_eth->update();
-        }
     } else if (send_flag) {
         if (LCU_Master::slave_ready_triggered ||
             (!spi_connected && g_slave_ready->read() == GPIO_PIN_SET)) {
@@ -196,11 +192,6 @@ inline void update() {
         }
 
         LCU_Master::CommsFrame::update_rx(&receive_flag);
-        while (!receive_flag) { // Busy wait for synchronization
-            MDMA::update();
-            g_eth->update();
-        }
-        __DMB(); // Ensure MDMA writes to status_packet are visible before CPU reads them
 
     } else if (receive_flag) {
         receive_flag = false;
