@@ -63,15 +63,17 @@ static inline constinit auto operational_state_machine = []() consteval {
 }();
 
 static inline constinit auto general_state_machine = []() consteval {
+    auto nested = StateMachineHelper::add_nested_machines(
+        StateMachineHelper::add_nesting(operational_state, operational_state_machine)
+    );
     auto sm = make_state_machine(
         GeneralStates::Connecting,
+        nested,
         connecting_state,
         operational_state,
         fault_state
     );
     using namespace std::chrono_literals;
-
-    sm.add_state_machine(operational_state_machine, operational_state);
 
     sm.add_enter_action([]() { LCU_Master::led_operational->turn_on(); }, operational_state);
 
