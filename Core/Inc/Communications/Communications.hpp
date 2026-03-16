@@ -27,6 +27,8 @@ inline uint32_t last_spi_packet_ms = 0;
 inline bool spi_connected = false;
 constexpr uint32_t SPI_TIMEOUT_MS = 1000;
 
+bool levitating_state = false;
+
 float desired_levitation_distance = 0.0f;
 float desired_current = 0.0f;
 uint32_t pwm_frequency = 0;
@@ -101,10 +103,12 @@ inline void update() {
         if (OrderPackets::levitate_flag) {
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::LEVITATE;
             communications.command_packet.levitate.desired_distance = desired_levitation_distance;
+            levitating_state = true;
         } 
         
         if (OrderPackets::stop_levitate_flag) {
             communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::LEVITATE;
+            levitating_state = false;
         }
 
         if (OrderPackets::current_control_flag) {
@@ -125,6 +129,7 @@ inline void update() {
         }
 
         if (OrderPackets::start_control_loop_flag) {
+            // (TODO) Make exclusive with levitate and so
             communications.command_packet.flags = communications.command_packet.flags | CommandFlags::CONTROL_LOOP;
         }
 

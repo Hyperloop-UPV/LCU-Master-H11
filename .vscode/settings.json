@@ -34,5 +34,6 @@
     "cstdlib": "cpp",
     "mutex": "cpp",
     "shared_mutex": "cpp"
-  }
+  },
+  "cortex-debug.variableUseNaturalFormat": false
 }

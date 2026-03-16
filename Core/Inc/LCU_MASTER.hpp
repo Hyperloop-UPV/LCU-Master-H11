@@ -10,13 +10,10 @@ namespace LCU_Master {
 inline void init() {
     Board::init();
 
-    static auto led_operational_inst = &Board::instance_of<led_operational_req>();
-    LCU_Master::led_operational = led_operational_inst;
-    static auto led_fault_inst = &Board::instance_of<led_fault_req>();
-    LCU_Master::led_fault = led_fault_inst;
+    LCU_Master::led_operational = &Board::instance_of<led_operational_req>();
+    LCU_Master::led_fault = &Board::instance_of<led_fault_req>();
 
-    static auto master_fault_inst = &Board::instance_of<master_fault_req>();
-    LCU_Master::master_fault = master_fault_inst;
+    LCU_Master::master_fault = &Board::instance_of<master_fault_req>();
 
 /* Comms */
 #ifdef STLIB_ETH
@@ -24,47 +21,35 @@ inline void init() {
     Comms::g_eth = &eth_instance;
 #endif
 
-    static auto my_spi_inst = &Board::instance_of<LCU_Master::spi_req>();
-    static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(*my_spi_inst);
+    static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(Board::instance_of<LCU_Master::spi_req>());
     Comms::g_spi = &my_spi;
 
-    static auto& slave_ready_inst = Board::instance_of<LCU_Master::slave_ready_req>();
-    Comms::g_slave_ready = &slave_ready_inst;
+    Comms::g_slave_ready = &Board::instance_of<LCU_Master::slave_ready_req>();
 
     /* LPU */
-    auto ready_pin1 = &Board::instance_of<ready1_req>();
-    auto fault_pin1 = &Board::instance_of<fault1_req>();
-    static LPU lpu1_inst(*ready_pin1, *fault_pin1);
+    static LPU lpu1_inst(Board::instance_of<ready1_req>(), Board::instance_of<fault1_req>());
     LCU_Master::lpu1 = &lpu1_inst;
 
-    static auto rst_pin1 = &Board::instance_of<rst1_req>();
     static LpuArray lpu_array_inst(
         std::make_tuple(std::ref(lpu1_inst)),
-        std::make_tuple(std::ref(*rst_pin1))
+        std::make_tuple(std::ref(Board::instance_of<rst1_req>()))
     );
     LCU_Master::lpu_array = &lpu_array_inst;
 
-    (void)airgap1;
-
-    // STLIB::start();
-    CommsFrame::init(Comms::communications, lpu1_inst, Comms::communications, lpu1_inst, airgap1);
     Scheduler::start();
-    LCU_StateMachine::start();
     MDMA::start();
+
+    LCU_StateMachine::start();
+
+    CommsFrame::init(Comms::communications, lpu1_inst, Comms::communications, lpu1_inst, airgap1);
     Comms::start();
 }
 
 void update() {
-    // general_state_machine_state = LCU_StateMachine::general_state_machine.get_current_state();
-    // operational_state_machine_state =
-    //     LCU_StateMachine::operational_state_machine.get_current_state();
-
     Comms::update();
     LCU_StateMachine::update();
-    MDMA::update();
     Scheduler::update();
-    // Flags are now cleared inside Comms::update()
-    // ...
+    MDMA::update();
 }
 } // namespace LCU_Master
 

@@ -58,12 +58,11 @@ inline constexpr auto spi_req =
     ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
         ST_LIB::SPIDomain::SPIMode::MASTER,
         ST_LIB::SPIDomain::SPIPeripheral::spi3,
-        1000000,
+        1000000, // (TODO) Test higher speeds
         Pinout::spi_sck,
         Pinout::spi_miso,
         Pinout::spi_mosi,
         spi_conf
-        // 10khz for now, should test later higher speeds
     );
 bool slave_ready_triggered = false;
 
@@ -128,8 +127,7 @@ inline ST_LIB::DigitalOutputDomain::Instance* master_fault = nullptr;
 inline LPU* lpu1 = nullptr;
 inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
 
-[[gnu::used]] inline AirgapBase airgap1;
-
+inline AirgapBase airgap1;
 
 inline DataPackets::general_state_machine general_state_machine_state =
     DataPackets::general_state_machine::Connecting;

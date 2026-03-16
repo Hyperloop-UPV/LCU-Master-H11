@@ -6,7 +6,7 @@
 using namespace ST_LIB;
 
 int main(void) {
-    
+    Hard_fault_check();
     LCU_Master::init();
 
     while (1) {
