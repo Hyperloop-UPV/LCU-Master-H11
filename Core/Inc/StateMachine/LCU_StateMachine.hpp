@@ -78,7 +78,7 @@ static inline constinit auto general_state_machine = []() consteval {
     sm.add_enter_action(
         []() {
             LCU_Master::led_fault->turn_on();
-            LCU_Master::master_fault->turn_on();
+            LCU_Master::master_fault->turn_off();
             ErrorHandler("Entered Fault State");
             // while (1);
         },

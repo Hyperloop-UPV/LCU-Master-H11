@@ -14,6 +14,7 @@ inline void init() {
     LCU_Master::led_fault = &Board::instance_of<led_fault_req>();
 
     LCU_Master::master_fault = &Board::instance_of<master_fault_req>();
+    master_fault->turn_on();
 
 /* Comms */
 #ifdef STLIB_ETH
