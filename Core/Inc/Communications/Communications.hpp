@@ -34,6 +34,7 @@ float desired_current = 0.0f;
 uint32_t pwm_frequency = 0;
 float pwm_duty_cycle = 0.0f;
 float fixed_vbat = 0.0f;
+uint32_t buffer_id = 0;
 
 float vbat = 5.0f;
 float shunt = 0.0f;
@@ -46,8 +47,8 @@ inline void start() {
     OrderPackets::current_control_init(desired_current);
     OrderPackets::start_pwm_init(pwm_frequency, pwm_duty_cycle);
     OrderPackets::stop_pwm_init();
-    OrderPackets::start_control_loop_init();
-    OrderPackets::stop_control_loop_init();
+    OrderPackets::enable_buffer_init(buffer_id);
+    OrderPackets::disable_buffer_init(buffer_id);
     OrderPackets::set_fixed_vbat_init(fixed_vbat);
     OrderPackets::unset_fixed_vbat_init();
     OrderPackets::set_control_params_init();
@@ -82,14 +83,23 @@ inline void clear_flags() {
     OrderPackets::current_control_flag = false;
     OrderPackets::start_pwm_flag = false;
     OrderPackets::stop_pwm_flag = false;
-    OrderPackets::start_control_loop_flag = false;
-    OrderPackets::stop_control_loop_flag = false;
+    OrderPackets::enable_buffer_flag = false;
+    OrderPackets::disable_buffer_flag = false;
     OrderPackets::set_fixed_vbat_flag = false;
     OrderPackets::unset_fixed_vbat_flag = false;
     OrderPackets::set_control_params_flag = false;
     OrderPackets::reset_slave_flag = false;
     OrderPackets::reset_master_flag = false;
     OrderPackets::reset_flag = false;
+}
+
+inline void reset_slave() {
+    for (int i = 0; i < 5; i++) {
+        LCU_Master::master_fault->turn_off();
+        while (!LCU_Master::slave_fault_triggered);
+        LCU_Master::slave_fault_triggered = false;
+        LCU_Master::master_fault->turn_on();
+    }
 }
 
 inline void update() {
@@ -118,32 +128,33 @@ inline void update() {
         } 
 
         if (OrderPackets::start_pwm_flag) {
-            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::PWM;
-            communications.command_packet.pwm.lpu_id_bitmask = 0x01;
-            communications.command_packet.pwm.frequency = pwm_frequency;
-            communications.command_packet.pwm.duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu1->fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu1->is_fixed_duty_cycle = true;
         } 
         
         if (OrderPackets::stop_pwm_flag) {
-            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::PWM;
+            LCU_Master::lpu1->is_fixed_duty_cycle = false;
         }
 
-        if (OrderPackets::start_control_loop_flag) {
-            // (TODO) Make exclusive with levitate and so
-            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::CONTROL_LOOP;
+        if (OrderPackets::enable_buffer_flag) {
+            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
+            communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= (1 << buffer_id);
         }
 
-        if (OrderPackets::stop_control_loop_flag) {
-            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::CONTROL_LOOP;
+        if (OrderPackets::disable_buffer_flag) {
+            communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &= ~(1 << buffer_id);
+            if (communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask == 0) {
+                communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::ENABLE_LPU_BUFFER;
+            }
         }
 
         if (OrderPackets::set_fixed_vbat_flag) {
-            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::FIXED_VBAT;
-            communications.command_packet.fixed_vbat.fixed_vbat = fixed_vbat;
+            LCU_Master::lpu1->is_fixed_vbat = true;
+            LCU_Master::lpu1->fixed_vbat = fixed_vbat;
         }
 
         if (OrderPackets::unset_fixed_vbat_flag) {
-            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::FIXED_VBAT;
+            LCU_Master::lpu1->is_fixed_vbat = false;
         }
 
         if (OrderPackets::set_control_params_flag) {
@@ -155,11 +166,11 @@ inline void update() {
         }
 
         if (OrderPackets::reset_slave_flag) {
-            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::RESET_SLAVE;
+            reset_slave();
         }
 
         if (OrderPackets::reset_flag) {
-            communications.command_packet.flags = communications.command_packet.flags | CommandFlags::RESET_SLAVE;
+            reset_slave();
             pending_master_reset = true;
         }
 
@@ -187,10 +198,6 @@ inline void update() {
     } else if (spi_flag) {
         spi_flag = false;
         
-        if ((communications.command_packet.flags & CommandFlags::RESET_SLAVE) == CommandFlags::RESET_SLAVE) {
-            communications.command_packet.flags = communications.command_packet.flags & ~CommandFlags::RESET_SLAVE;
-        }
-
         if (pending_master_reset) {
             pending_master_reset = false;
             HAL_NVIC_SystemReset();
