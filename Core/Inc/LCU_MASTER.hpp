@@ -22,7 +22,8 @@ inline void init() {
     Comms::g_eth = &eth_instance;
 #endif
 
-    static auto my_spi = ST_LIB::SPIDomain::SPIWrapper<spi_req>(Board::instance_of<LCU_Master::spi_req>());
+    static auto my_spi =
+        ST_LIB::SPIDomain::SPIWrapper<spi_req>(Board::instance_of<LCU_Master::spi_req>());
     Comms::g_spi = &my_spi;
 
     Comms::g_slave_ready = &Board::instance_of<LCU_Master::slave_ready_req>();
@@ -37,7 +38,6 @@ inline void init() {
     );
     LCU_Master::lpu_array = &lpu_array_inst;
 
-    Scheduler::start();
     MDMA::start();
 
     LCU_StateMachine::start();

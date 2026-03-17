@@ -47,7 +47,8 @@ inline constexpr auto led_fault_req = ST_LIB::DigitalOutputDomain::DigitalOutput
 
 bool slave_fault_triggered = false;
 
-inline constexpr auto master_fault_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::master_fault);
+inline constexpr auto master_fault_req =
+    ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::master_fault);
 inline constexpr auto slave_fault_req = ST_LIB::EXTIDomain::Device(
     Pinout::slave_fault,
     ST_LIB::EXTIDomain::Trigger::FALLING_EDGE,
@@ -66,11 +67,10 @@ inline constexpr auto spi_req =
     );
 bool slave_ready_triggered = false;
 
-inline constexpr auto slave_ready_req = ST_LIB::EXTIDomain::Device(
-    Pinout::spi_nss,
-    ST_LIB::EXTIDomain::Trigger::RISING_EDGE,
-    []() { slave_ready_triggered = true; }
-);
+inline constexpr auto slave_ready_req =
+    ST_LIB::EXTIDomain::Device(Pinout::spi_nss, ST_LIB::EXTIDomain::Trigger::RISING_EDGE, []() {
+        slave_ready_triggered = true;
+    });
 
 inline constexpr auto fault1_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault1);
 // inline constexpr auto fault2_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault2);
