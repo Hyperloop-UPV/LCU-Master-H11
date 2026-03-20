@@ -6,7 +6,7 @@
 #include "SpiShared.hpp"
 #include "ConfigShared.hpp"
 #include "LPU/LPU.hpp"
-#include "AirgapShared.hpp"
+#include "Airgap/Airgap.hpp"
 #include "Communications/Packets/DataPackets.hpp"
 #include "Communications/Packets/OrderPackets.hpp"
 
@@ -72,33 +72,40 @@ inline constexpr auto slave_ready_req =
         slave_ready_triggered = true;
     });
 
+#ifdef USE_1_DOF
+inline constexpr auto fault_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault1);
+inline constexpr auto ready_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready1);
+inline constexpr auto rst_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst1);
+
+#elif defined(USE_5_DOF)
 inline constexpr auto fault1_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault1);
-// inline constexpr auto fault2_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault2);
-// inline constexpr auto fault3_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault3);
-// inline constexpr auto fault4_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault4);
-// inline constexpr auto fault5_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault5);
-// inline constexpr auto fault6_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault6);
-// inline constexpr auto fault7_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault7);
-// inline constexpr auto fault8_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault8);
-// inline constexpr auto fault9_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault9);
-// inline constexpr auto fault10_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault10);
+inline constexpr auto fault2_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault2);
+inline constexpr auto fault3_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault3);
+inline constexpr auto fault4_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault4);
+inline constexpr auto fault5_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault5);
+inline constexpr auto fault6_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault6);
+inline constexpr auto fault7_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault7);
+inline constexpr auto fault8_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault8);
+inline constexpr auto fault9_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault9);
+inline constexpr auto fault10_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::fault10);
 
 inline constexpr auto ready1_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready1);
-// inline constexpr auto ready2_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready2);
-// inline constexpr auto ready3_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready3);
-// inline constexpr auto ready4_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready4);
-// inline constexpr auto ready5_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready5);
-// inline constexpr auto ready6_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready6);
-// inline constexpr auto ready7_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready7);
-// inline constexpr auto ready8_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready8);
-// inline constexpr auto ready9_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready9);
-// inline constexpr auto ready10_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready10);
+inline constexpr auto ready2_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready2);
+inline constexpr auto ready3_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready3);
+inline constexpr auto ready4_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready4);
+inline constexpr auto ready5_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready5);
+inline constexpr auto ready6_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready6);
+inline constexpr auto ready7_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready7);
+inline constexpr auto ready8_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready8);
+inline constexpr auto ready9_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready9);
+inline constexpr auto ready10_req = ST_LIB::DigitalInputDomain::DigitalInput(Pinout::ready10);
 
 inline constexpr auto rst1_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst1);
-// inline constexpr auto rst2_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst2);
-// inline constexpr auto rst3_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst3);
-// inline constexpr auto rst4_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst4);
-// inline constexpr auto rst5_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst5);
+inline constexpr auto rst2_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst2);
+inline constexpr auto rst3_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst3);
+inline constexpr auto rst4_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst4);
+inline constexpr auto rst5_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst5);
+#endif
 
 using Board = ST_LIB::Board<
 #ifdef STLIB_ETH
@@ -110,11 +117,17 @@ using Board = ST_LIB::Board<
     slave_fault_req,
     spi_req,
     slave_ready_req,
-    fault1_req, /*fault2_req, fault3_req, fault4_req, fault5_req,
-    fault6_req, fault7_req, fault8_req, fault9_req, fault10_req,*/
-    ready1_req, /*ready2_req, ready3_req, ready4_req, ready5_req,
-    ready6_req, ready7_req, ready8_req, ready9_req, ready10_req,*/
-    rst1_req    /*, rst2_req, rst3_req, rst4_req, rst5_req,*/
+#ifdef USE_1_DOF
+    fault_req,
+    ready_req,
+    rst_req
+#elif defined(USE_5_DOF)
+    fault1_req, fault2_req, fault3_req, fault4_req, fault5_req,
+    fault6_req, fault7_req, fault8_req, fault9_req, fault10_req,
+    ready1_req, ready2_req, ready3_req, ready4_req, ready5_req,
+    ready6_req, ready7_req, ready8_req, ready9_req, ready10_req,
+    rst1_req, rst2_req, rst3_req, rst4_req, rst5_req
+#endif
     >;
 
 using CommsFrame = SystemFrame<true>;
@@ -125,10 +138,22 @@ inline ST_LIB::DigitalOutputDomain::Instance* led_fault = nullptr;
 inline ST_LIB::DigitalOutputDomain::Instance* master_fault = nullptr;
 inline ST_LIB::EXTIDomain::Instance* slave_fault = nullptr;
 
-inline LPU* lpu1 = nullptr;
-inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
+#ifdef USE_1_DOF
+using LpuArrayType = LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>;
+using AirgapArrayType = AirgapArray<std::tuple<Airgap>>;
 
-inline AirgapBase airgap1;
+#elif defined(USE_5_DOF)
+using LpuArrayType = LpuArray<std::tuple<LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU>,
+                            std::tuple<ST_LIB::DigitalOutputDomain::Instance, ST_LIB::DigitalOutputDomain::Instance,
+                                       ST_LIB::DigitalOutputDomain::Instance, ST_LIB::DigitalOutputDomain::Instance,
+                                       ST_LIB::DigitalOutputDomain::Instance>>;
+using AirgapArrayType = AirgapArray<std::tuple<Airgap, Airgap, Airgap, Airgap, Airgap, Airgap, Airgap, Airgap>>;
+
+#endif
+
+inline LpuArrayType* lpu_array;
+
+inline AirgapArrayType* airgap_array;
 
 inline DataPackets::general_state_machine general_state_machine_state =
     DataPackets::general_state_machine::Connecting;

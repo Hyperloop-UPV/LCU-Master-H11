@@ -99,12 +99,7 @@ void start() { general_state_machine.start(); }
 void update() {
     general_state_machine.check_transitions();
     LCU_Master::general_state_machine_state = general_state_machine.get_current_state();
-    if (general_state_machine.get_current_state() == GeneralStates::Operational) {
-        operational_state_machine.check_transitions();
-        LCU_Master::operational_state_machine_state = operational_state_machine.get_current_state();
-    } else {
-        LCU_Master::operational_state_machine_state = OperationalStates::Idle;
-    }
+    LCU_Master::operational_state_machine_state = operational_state_machine.get_current_state();
 }
 }; // namespace LCU_StateMachine
 

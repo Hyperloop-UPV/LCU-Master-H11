@@ -48,8 +48,8 @@ inline void start() {
     OrderPackets::Current_Control_init(desired_current);
     OrderPackets::Start_PWM_init(pwm_duty_cycle);
     OrderPackets::Stop_PWM_init();
-    OrderPackets::Enable_Buffer_init(buffer_id);
-    OrderPackets::Disable_Buffer_init(buffer_id);
+    OrderPackets::Enable_Buffer_init();
+    OrderPackets::Disable_Buffer_init();
     OrderPackets::Set_Fixed_VBAT_init(fixed_vbat);
     OrderPackets::Unset_Fixed_VBAT_init();
     OrderPackets::Set_Control_Params_init();
@@ -140,15 +140,16 @@ inline void update() {
         }
 
         if (OrderPackets::Start_PWM_flag) {
-            LCU_Master::lpu1->fixed_duty_cycle = pwm_duty_cycle;
-            LCU_Master::lpu1->is_fixed_duty_cycle = true;
+            LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = true;
         }
 
         if (OrderPackets::Stop_PWM_flag) {
-            LCU_Master::lpu1->is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false;
         }
 
         if (OrderPackets::Enable_Buffer_flag) {
+            buffer_id = 0;
             communications.command_packet.flags =
                 communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
             communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
@@ -156,6 +157,7 @@ inline void update() {
         }
 
         if (OrderPackets::Disable_Buffer_flag) {
+            buffer_id = 0;
             communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &=
                 ~(1 << buffer_id);
             if (communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask == 0) {
@@ -165,12 +167,12 @@ inline void update() {
         }
 
         if (OrderPackets::Set_Fixed_VBAT_flag) {
-            LCU_Master::lpu1->is_fixed_vbat = true;
-            LCU_Master::lpu1->fixed_vbat = fixed_vbat;
+            LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = true;
+            LCU_Master::lpu_array->get_lpu<0>().fixed_vbat = fixed_vbat;
         }
 
         if (OrderPackets::Unset_Fixed_VBAT_flag) {
-            LCU_Master::lpu1->is_fixed_vbat = false;
+            LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = false;
         }
 
         if (OrderPackets::Set_Control_Params_flag) {
@@ -230,10 +232,10 @@ inline void update() {
             last_spi_packet_ms = HAL_GetTick();
             spi_connected = true;
 
-            vbat = LCU_Master::lpu1->vbat_v;
-            shunt = LCU_Master::lpu1->shunt_v;
-            airgap = LCU_Master::airgap1.airgap_v;
-            curr_pwm_duty_cycle = LCU_Master::lpu1->duty_cycle;
+            vbat = LCU_Master::lpu_array->get_lpu<0>().vbat_v;
+            shunt = LCU_Master::lpu_array->get_lpu<0>().shunt_v;
+            airgap = LCU_Master::airgap_array->get_airgap<0>().airgap_v;
+            curr_pwm_duty_cycle = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
         }
 
         operation_flag = false;
