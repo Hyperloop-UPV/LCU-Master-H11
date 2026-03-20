@@ -16,6 +16,8 @@ inline void init() {
     LCU_Master::master_fault = &Board::instance_of<master_fault_req>();
     master_fault->turn_on();
 
+    LCU_Master::slave_fault = &Board::instance_of<slave_fault_req>();
+
 /* Comms */
 #ifdef STLIB_ETH
     static auto& eth_instance = Board::instance_of<eth>();

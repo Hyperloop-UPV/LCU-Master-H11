@@ -99,11 +99,11 @@ inline void clear_flags() {
 inline void reset_slave() {
     for (int i = 0; i < 5; i++) {
         LCU_Master::master_fault->turn_off();
-        while (!LCU_Master::slave_fault_triggered)
-            ;
-        LCU_Master::slave_fault_triggered = false;
+        HAL_Delay(100);
         LCU_Master::master_fault->turn_on();
+        HAL_Delay(100);
     }
+    LCU_Master::slave_fault_triggered = false;
 }
 
 inline void update() {

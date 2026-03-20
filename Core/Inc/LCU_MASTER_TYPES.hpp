@@ -123,6 +123,7 @@ inline ST_LIB::DigitalOutputDomain::Instance* led_operational = nullptr;
 inline ST_LIB::DigitalOutputDomain::Instance* led_fault = nullptr;
 
 inline ST_LIB::DigitalOutputDomain::Instance* master_fault = nullptr;
+inline ST_LIB::EXTIDomain::Instance* slave_fault = nullptr;
 
 inline LPU* lpu1 = nullptr;
 inline LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputDomain::Instance>>* lpu_array;
