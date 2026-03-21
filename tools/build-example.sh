@@ -5,31 +5,38 @@ usage() {
     cat <<'EOF'
 Usage: tools/build-example.sh --example <name> [options]
 
-Compiles one example by injecting EXAMPLE_* / TEST_* defines through CMake.
+Build one firmware target. Examples enable BUILD_EXAMPLES and inject EXAMPLE_* / TEST_* macros.
+The special target 'main' builds Core/Src/main.cpp as the default firmware.
 
 Options:
   -l, --list                  List all available EXAMPLE_* and their TEST_* macros.
-      --list-tests <name>     List TEST_* macros for one example (e.g. fmac, EXAMPLE_FMAC).
-  -e, --example <name>        Example name (e.g. fmac, adc, EXAMPLE_FMAC).
+      --list-tests <name>     List TEST_* macros for one example (e.g. adc, EXAMPLE_ADC).
+  -e, --example <name>        Target name, e.g. adc, EXAMPLE_ADC or main.
   -t, --test <id|macro>       Test selector (default: TEST_0). Accepts 0, 1, TEST_1...
       --no-test               Do not define any TEST_* macro.
-  -p, --preset <preset>       CMake configure/build preset
-                              (default: board-debug-eth-ksz8041).
-  -b, --board-name <name>     Optional BOARD_NAME override (e.g. TEST).
-      --extra-cxx-flags <f>   Extra CXX flags appended after EXAMPLE/TEST defines.
+  -p, --preset <preset>       CMake preset. Defaults to nucleo-debug.
+  -b, --board-name <name>     Optional BOARD_NAME override.
+      --extra-cxx-flags <f>   Extra flags appended after the injected defines.
   -h, --help                  Show this help.
 
 Examples:
   tools/build-example.sh --list
-  tools/build-example.sh --list-tests fmac
-  tools/build-example.sh --example fmac
-  tools/build-example.sh --example EXAMPLE_ADC --test 0 --preset board-debug
+  tools/build-example.sh --list-tests adc
+  tools/build-example.sh --example adc --preset nucleo-debug
+  tools/build-example.sh --example adc --test 1 --preset nucleo-debug
+  tools/build-example.sh --example main --preset nucleo-debug
   tools/build-example.sh --example ethernet --test TEST_0 --board-name TEST
 EOF
 }
 
 normalize_example_macro() {
     local input="$1"
+    local normalized_lower
+    normalized_lower="$(printf '%s' "$input" | tr '[:upper:]-' '[:lower:]_')"
+    if [[ "$normalized_lower" == "main" || "$normalized_lower" == "default" ]]; then
+        printf 'MAIN'
+        return
+    fi
     input="${input#EXAMPLE_}"
     input="${input#example_}"
     input="$(printf '%s' "$input" | tr '[:lower:]-' '[:upper:]_')"
@@ -49,11 +56,18 @@ normalize_test_macro() {
 }
 
 collect_examples() {
-    grep -Rho "EXAMPLE_[A-Z0-9_]\+" "${repo_root}/Core/Src/Examples"/*.cpp 2>/dev/null | sort -u
+    {
+        printf 'MAIN\n'
+        grep -Rho "EXAMPLE_[A-Z0-9_]\+" "${repo_root}/Core/Src/Examples"/*.cpp 2>/dev/null
+    } | sort -u
 }
 
 find_example_file() {
     local example_macro="$1"
+    if [[ "$example_macro" == "MAIN" ]]; then
+        printf '%s\n' "${repo_root}/Core/Src/main.cpp"
+        return 0
+    fi
     local file
     for file in "${repo_root}/Core/Src/Examples"/*.cpp; do
         [[ -f "$file" ]] || continue
@@ -67,6 +81,9 @@ find_example_file() {
 
 collect_tests_for_example() {
     local example_macro="$1"
+    if [[ "$example_macro" == "MAIN" ]]; then
+        return 0
+    fi
     local file
     file="$(find_example_file "$example_macro" || true)"
     if [[ -z "$file" ]]; then
@@ -77,16 +94,17 @@ collect_tests_for_example() {
 }
 
 print_examples_table() {
-    local file
     local example_macro
+    local file
+    local rel_file
     local tests_csv
     local tests_raw
-    local rel_file
 
     while IFS='|' read -r macro tests file_path; do
         printf "%-40s tests: %s\n" "$macro" "$tests"
         printf "  file: %s\n" "$file_path"
     done < <(
+        printf "MAIN|<none>|Core/Src/main.cpp\n"
         for file in "${repo_root}/Core/Src/Examples"/*.cpp; do
             [[ -f "$file" ]] || continue
             example_macro="$(grep -Eho "EXAMPLE_[A-Z0-9_]+" "$file" | head -n1 || true)"
@@ -105,6 +123,10 @@ print_examples_table() {
     )
 }
 
+sanitize_path_fragment() {
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]_-' '_'
+}
+
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 repo_root="$(CDPATH= cd -- "${script_dir}/.." && pwd)"
 
@@ -113,7 +135,7 @@ list_tests_target=""
 example_name=""
 test_macro="TEST_0"
 test_explicit=0
-preset="board-debug-eth-ksz8041"
+preset="nucleo-debug"
 board_name=""
 extra_cxx_flags=""
 
@@ -181,8 +203,8 @@ if [[ -n "$list_tests_target" ]]; then
         echo "Unknown example macro '${example_macro}'." >&2
         exit 1
     fi
-    tests_output="$(collect_tests_for_example "$example_macro" || true)"
 
+    tests_output="$(collect_tests_for_example "$example_macro" || true)"
     echo "${example_macro}"
     if [[ -z "$tests_output" ]]; then
         echo "  - <none>"
@@ -233,12 +255,33 @@ if [[ "$test_explicit" -ne 1 ]]; then
     fi
 fi
 
-define_flags="-D${example_macro}"
-if [[ -n "$test_macro" ]]; then
-    define_flags+=" -D${test_macro}"
+build_examples="ON"
+define_flags=""
+if [[ "$example_macro" != "MAIN" ]]; then
+    define_flags="-D${example_macro}"
+    if [[ -n "$test_macro" ]]; then
+        define_flags+=" -D${test_macro}"
+    fi
+else
+    if [[ -n "$test_macro" ]]; then
+        echo "Target 'main' does not support TEST_* macros." >&2
+        exit 1
+    fi
+    build_examples="OFF"
 fi
 if [[ -n "$extra_cxx_flags" ]]; then
-    define_flags+=" ${extra_cxx_flags}"
+    if [[ -n "$define_flags" ]]; then
+        define_flags+=" ${extra_cxx_flags}"
+    else
+        define_flags="${extra_cxx_flags}"
+    fi
+fi
+
+binary_dir="${repo_root}/out/build/examples/$(sanitize_path_fragment "${preset}")/$(sanitize_path_fragment "${example_macro}")"
+if [[ -n "$test_macro" ]]; then
+    binary_dir+="/$(sanitize_path_fragment "${test_macro}")"
+else
+    binary_dir+="/no_test"
 fi
 
 echo "[build-example] repo: ${repo_root}"
@@ -249,13 +292,16 @@ if [[ -n "$test_macro" ]]; then
 else
     echo "[build-example] test: <none>"
 fi
+echo "[build-example] binary dir: ${binary_dir}"
 
 cd "${repo_root}"
 
 configure_cmd=(
     cmake
     --preset "${preset}"
-    -DBUILD_EXAMPLES=ON
+    -B "${binary_dir}"
+    "-DBUILD_EXAMPLES=${build_examples}"
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF
     "-DCMAKE_CXX_FLAGS=${define_flags}"
 )
 
@@ -264,6 +310,6 @@ if [[ -n "$board_name" ]]; then
 fi
 
 "${configure_cmd[@]}"
-cmake --build --preset "${preset}"
+cmake --build "${binary_dir}"
 
 echo "[build-example] Build completed."
