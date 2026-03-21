@@ -29,6 +29,7 @@ else()
 endif()
 
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
+option(USE_5_DOF "Build for 5-DOF configuration" ON)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
 option(BUILD_EXAMPLES "Build Core/Src/Examples sources" OFF)
 option(USE_CCACHE "Use ccache if available" ON)
@@ -52,6 +53,7 @@ endif()
 
 message(STATUS "Template project: CMAKE_CROSSCOMPILING = ${CMAKE_CROSSCOMPILING}")
 message(STATUS "Template project: USE_ETHERNET         = ${USE_ETHERNET}")
+message(STATUS "Template project: USE_5_DOF            = ${USE_5_DOF}")
 message(STATUS "Template project: TARGET_NUCLEO        = ${TARGET_NUCLEO}")
 message(STATUS "Template project: BOARD_NAME           = ${BOARD_NAME}")
 
@@ -63,9 +65,16 @@ file(GLOB_RECURSE SOURCE_CPP  ${CMAKE_SOURCE_DIR}/Core/*.cpp)
 file(GLOB_RECURSE SOURCE_H    ${CMAKE_SOURCE_DIR}/Core/*.h)
 file(GLOB_RECURSE SOURCE_HPP  ${CMAKE_SOURCE_DIR}/Core/*.hpp)
 
+# Determine which JSON config to use based on USE_5_DOF
+if(USE_5_DOF)
+  set(GENERATOR_JSON_DIR "adj_5DOF")
+else()
+  set(GENERATOR_JSON_DIR "adj_1DOF")
+endif()
+
 file(GLOB_RECURSE GENERATOR_JSONS
   CONFIGURE_DEPENDS
-  ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/JSON_ADE/*.json
+  ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/${GENERATOR_JSON_DIR}/*.json
 )
 
 set(GENERATED_DATA_PACKETS ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/DataPackets.hpp)
@@ -74,7 +83,7 @@ add_custom_command(
   OUTPUT
   ${GENERATED_DATA_PACKETS}
   ${GENERATED_ORDER_PACKETS}
-  COMMAND ${PYTHON_FOR_TOOLS} ${GENERATOR_SCRIPT} ${BOARD_NAME}
+  COMMAND ${PYTHON_FOR_TOOLS} ${GENERATOR_SCRIPT} ${BOARD_NAME} ${GENERATOR_JSON_DIR}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   DEPENDS
   ${GENERATOR_SCRIPT}
@@ -165,6 +174,8 @@ if(CMAKE_CROSSCOMPILING)
   target_compile_definitions(${EXECUTABLE} PRIVATE
     $<$<BOOL:${EXAMPLE_SELECTED}>:EXAMPLE_SELECTED>
     $<$<BOOL:${USE_ETHERNET}>:STLIB_ETH>
+    $<$<BOOL:${USE_5_DOF}>:USE_5_DOF>
+    $<$<NOT:$<BOOL:${USE_5_DOF}>>:USE_1_DOF>
     $<IF:$<BOOL:${TARGET_NUCLEO}>,NUCLEO,BOARD>
     $<IF:$<BOOL:${TARGET_NUCLEO}>,HSE_VALUE=8000000,HSE_VALUE=25000000>
   )

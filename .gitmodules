@@ -2,8 +2,11 @@
 	path = deps/ST-LIB
 	url = https://github.com/HyperloopUPV-H8/ST-LIB
 [submodule "Core/Inc/Communications/JSON_ADE"]
-	path = Core/Inc/Code_generation/JSON_ADE
+	path = Core/Inc/Code_generation/adj_1DOF
 	url = https://github.com/HyperloopUPV-H8/adj
 [submodule "deps/LCU-Shared-H11"]
 	path = deps/LCU-Shared-H11
 	url = https://github.com/Hyperloop-UPV/LCU-Shared-H11.git
+[submodule "Core/Inc/Code_generation/adj_5DOF"]
+	path = Core/Inc/Code_generation/adj_5DOF
+	url = https://github.com/HyperloopUPV-H8/adj
