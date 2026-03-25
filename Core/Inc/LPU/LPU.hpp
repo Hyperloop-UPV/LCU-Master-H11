@@ -11,6 +11,8 @@ public:
         : ready_pin(ready), fault_pin(fault) {}
 
     bool update() {
+        return true; // Temporary bypass for testing without hardware. Replace with actual logic
+                     // below.
         if (ready_pin.read() == GPIO_PinState::GPIO_PIN_SET)
             ready = true;
         else

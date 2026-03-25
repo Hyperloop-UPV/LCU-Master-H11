@@ -22,7 +22,6 @@ volatile bool send_flag = false;
 volatile bool spi_flag = false;
 volatile bool receive_flag = false;
 volatile bool operation_flag = false;
-bool pending_master_reset = false;
 inline uint32_t last_spi_packet_ms = 0;
 inline bool spi_connected = false;
 constexpr uint32_t SPI_TIMEOUT_MS = 1000;
@@ -53,7 +52,20 @@ float lpu_pwm_duty[10] = {0.0f};
 float airgap_measurements[8] = {0.0f};
 #endif
 
+inline void reset_slave() {
+    for (int i = 0; i < 5; i++) {
+        LCU_Master::master_fault->turn_off();
+        HAL_Delay(10);
+        LCU_Master::master_fault->turn_on();
+        HAL_Delay(10);
+    }
+    HAL_Delay(100); // Ensure slave has time to reset
+    LCU_Master::slave_fault_triggered = false;
+}
+
 inline void start() {
+    reset_slave();
+
     // Initialize Orders
     OrderPackets::Stop_All_init();
     OrderPackets::Levitate_init(desired_levitation_distance);
@@ -142,15 +154,6 @@ inline void clear_flags() {
     OrderPackets::Reset_All_flag = false;
 }
 
-inline void reset_slave() {
-    for (int i = 0; i < 5; i++) {
-        LCU_Master::master_fault->turn_off();
-        HAL_Delay(100);
-        LCU_Master::master_fault->turn_on();
-        HAL_Delay(100);
-    }
-    LCU_Master::slave_fault_triggered = false;
-}
 
 inline void update() {
 #ifdef STLIB_ETH
@@ -311,8 +314,8 @@ inline void update() {
             // TODO
         }
 
-        if (OrderPackets::Reset_Master_flag) {
-            pending_master_reset = true;
+        if (OrderPackets::Reset_Master_flag) { // Should remove
+            HAL_NVIC_SystemReset();
         }
 
         if (OrderPackets::Reset_Slave_flag) {
@@ -320,8 +323,7 @@ inline void update() {
         }
 
         if (OrderPackets::Reset_All_flag) {
-            reset_slave();
-            pending_master_reset = true;
+            HAL_NVIC_SystemReset();
         }
 
         clear_flags();
@@ -347,11 +349,6 @@ inline void update() {
 
     } else if (spi_flag) {
         spi_flag = false;
-
-        if (pending_master_reset) {
-            pending_master_reset = false;
-            HAL_NVIC_SystemReset();
-        }
 
         LCU_Master::CommsFrame::update_rx(&receive_flag);
 
