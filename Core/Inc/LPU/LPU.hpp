@@ -95,7 +95,39 @@ public:
 
     template <size_t Index> auto& get_lpu() { return *std::get<Index>(lpus); }
 
+    void enable_pair(size_t lpu_index) {
+        if constexpr (LpuCount == 1) {
+            std::get<0>(reset_pins)->turn_on();
+            return;
+        }
+        if (lpu_index >= LpuCount) return; // Out of bounds check
+        size_t pin_index = lpu_index / 2;
+        apply_to_pin(pin_index, [](auto pin) { pin->turn_off(); });
+    }
+
+    void disable_pair(size_t lpu_index) {
+        if constexpr (LpuCount == 1) {
+            std::get<0>(reset_pins)->turn_off();
+            return;
+        }
+        if (lpu_index >= LpuCount) return; // Out of bounds check
+        size_t pin_index = lpu_index / 2;
+        apply_to_pin(pin_index, [](auto pin) { pin->turn_on(); });
+    }
+
     bool is_all_ok() const { return all_ok; }
+
+private:
+    template <typename Func> void apply_to_pin(size_t pin_index, Func&& func) {
+        apply_to_pin_impl(pin_index, std::forward<Func>(func), std::index_sequence_for<ResetPins...>{});
+    }
+
+    template <typename Func, size_t... Is>
+    void apply_to_pin_impl(size_t pin_index, Func&& func, std::index_sequence<Is...>) {
+        (void)pin_index;
+        (void)func;
+        (((Is == pin_index) && (func(std::get<Is>(reset_pins)), true)) || ...);
+    }
 };
 
 // Deduction guide for LpuArray

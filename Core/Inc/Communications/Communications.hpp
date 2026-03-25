@@ -243,6 +243,7 @@ inline void update() {
         if (OrderPackets::Enable_Buffer_flag) {
             communications.command_packet.flags =
                 communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
+            LCU_Master::lpu_array->enable_pair(enable_buffer_id - 1); // Convert to 0-based index
 #ifdef USE_1_DOF
             communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
                 (1 << 0);
@@ -255,6 +256,7 @@ inline void update() {
         }
 
         if (OrderPackets::Disable_Buffer_flag) {
+            LCU_Master::lpu_array->disable_pair(disable_buffer_id - 1); // Convert to 0-based index
 #ifdef USE_1_DOF
             communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &=
                 ~(1 << 0);
