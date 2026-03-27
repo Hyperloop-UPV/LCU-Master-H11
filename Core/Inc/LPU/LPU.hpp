@@ -60,7 +60,7 @@ public:
     }
 
     void reset_all() {
-        std::apply([](auto&... pin) { (pin->turn_on(), ...); }, reset_pins);
+        std::apply([](auto&... pin) { (pin->turn_off(), ...); }, reset_pins);
     }
 
     template <size_t LpuIndex> void disable_pair() {
@@ -82,11 +82,11 @@ public:
     }
 
     void disable_all() {
-        std::apply([](auto&... pin) { (pin->turn_on(), ...); }, reset_pins);
+        std::apply([](auto&... pin) { (pin->turn_off(), ...); }, reset_pins);
     }
 
     void enable_all() {
-        std::apply([](auto&... pin) { (pin->turn_off(), ...); }, reset_pins);
+        std::apply([](auto&... pin) { (pin->turn_on(), ...); }, reset_pins);
     }
 
     bool update_all() {
