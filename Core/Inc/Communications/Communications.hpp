@@ -167,7 +167,7 @@ inline void update() {
         if (OrderPackets::Levitate_flag) {
             communications.command_packet.flags =
                 communications.command_packet.flags | CommandFlags::LEVITATE;
-            communications.command_packet.levitate.desired_distance = desired_levitation_distance / 100.0f; // Convert cm to m
+            communications.command_packet.levitate.desired_distance = desired_levitation_distance / 1000.0f; // Convert mm to m
             levitating_state = true;
         }
 
@@ -362,7 +362,7 @@ inline void update() {
 #ifdef USE_1_DOF
             vbat = LCU_Master::lpu_array->get_lpu<0>().vbat_v;
             shunt = LCU_Master::lpu_array->get_lpu<0>().shunt_v;
-            airgap = LCU_Master::airgap_array->get_airgap<0>().airgap_v * 100.0f; // Convert to cm
+            airgap = LCU_Master::airgap_array->get_airgap<0>().airgap_v * 1000.0f; // Convert to mm
             curr_pwm_duty_cycle = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
 #elif defined(USE_5_DOF)
             lpu_vbat[0] = LCU_Master::lpu_array->get_lpu<0>().vbat_v; lpu_shunt[0] = LCU_Master::lpu_array->get_lpu<0>().shunt_v; lpu_pwm_duty[0] = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
@@ -375,14 +375,14 @@ inline void update() {
             lpu_vbat[7] = LCU_Master::lpu_array->get_lpu<7>().vbat_v; lpu_shunt[7] = LCU_Master::lpu_array->get_lpu<7>().shunt_v; lpu_pwm_duty[7] = LCU_Master::lpu_array->get_lpu<7>().duty_cycle;
             lpu_vbat[8] = LCU_Master::lpu_array->get_lpu<8>().vbat_v; lpu_shunt[8] = LCU_Master::lpu_array->get_lpu<8>().shunt_v; lpu_pwm_duty[8] = LCU_Master::lpu_array->get_lpu<8>().duty_cycle;
             lpu_vbat[9] = LCU_Master::lpu_array->get_lpu<9>().vbat_v; lpu_shunt[9] = LCU_Master::lpu_array->get_lpu<9>().shunt_v; lpu_pwm_duty[9] = LCU_Master::lpu_array->get_lpu<9>().duty_cycle;
-            airgap_measurements[0] = LCU_Master::airgap_array->get_airgap<0>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[1] = LCU_Master::airgap_array->get_airgap<1>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[2] = LCU_Master::airgap_array->get_airgap<2>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[3] = LCU_Master::airgap_array->get_airgap<3>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[4] = LCU_Master::airgap_array->get_airgap<4>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[5] = LCU_Master::airgap_array->get_airgap<5>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[6] = LCU_Master::airgap_array->get_airgap<6>().airgap_v * 100.0f; // Convert to cm
-            airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v * 100.0f; // Convert to cm
+            airgap_measurements[0] = LCU_Master::airgap_array->get_airgap<0>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[1] = LCU_Master::airgap_array->get_airgap<1>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[2] = LCU_Master::airgap_array->get_airgap<2>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[3] = LCU_Master::airgap_array->get_airgap<3>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[4] = LCU_Master::airgap_array->get_airgap<4>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[5] = LCU_Master::airgap_array->get_airgap<5>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[6] = LCU_Master::airgap_array->get_airgap<6>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v * 1000.0f; // Convert to mm
 #endif
         }
 
