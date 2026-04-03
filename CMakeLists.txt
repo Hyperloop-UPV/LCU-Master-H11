@@ -29,7 +29,7 @@ else()
 endif()
 
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
-option(USE_5_DOF "Build for 5-DOF configuration" ON)
+option(USE_5_DOF "Build for 5-DOF configuration" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
 option(BUILD_EXAMPLES "Build Core/Src/Examples sources" OFF)
 option(USE_CCACHE "Use ccache if available" ON)
@@ -73,7 +73,6 @@ else()
 endif()
 
 file(GLOB_RECURSE GENERATOR_JSONS
-  CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/${GENERATOR_JSON_DIR}/*.json
 )
 
@@ -102,7 +101,6 @@ add_custom_target(run_generator
 )
 
 file(GLOB_RECURSE METADATA_SOURCES
-  CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Core/*.c
   ${CMAKE_SOURCE_DIR}/Core/*.cpp
   ${CMAKE_SOURCE_DIR}/Core/*.h

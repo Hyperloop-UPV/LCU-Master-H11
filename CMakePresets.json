@@ -24,43 +24,25 @@
             }
         },
         {
-            "name": "nucleo-debug",
-            "displayName": "Nucleo [DBG]",
-            "inherits": [
-                "mcu"
-            ],
+            "name": "dof-1dof",
+            "hidden": true,
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "TARGET_NUCLEO": "ON"
+                "USE_5_DOF": "OFF"
             }
         },
         {
-            "name": "nucleo-release",
-            "displayName": "Nucleo [REL]",
-            "inherits": [
-                "mcu"
-            ],
+            "name": "dof-5dof",
+            "hidden": true,
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "TARGET_NUCLEO": "ON"
+                "USE_5_DOF": "ON"
             }
         },
         {
-            "name": "nucleo-relwithdebinfo",
-            "displayName": "Nucleo [RWD]",
+            "name": "nucleo-debug-eth-1dof",
+            "displayName": "Nucleo [DBG 1DOF] [ETH]",
             "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "TARGET_NUCLEO": "ON"
-            }
-        },
-        {
-            "name": "nucleo-debug-eth",
-            "displayName": "Nucleo [DBG] [ETH]",
-            "inherits": [
-                "mcu"
+                "mcu",
+                "dof-1dof"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -69,10 +51,24 @@
             }
         },
         {
-            "name": "nucleo-release-eth",
-            "displayName": "Nucleo [REL] [ETH]",
+            "name": "nucleo-debug-eth-5dof",
+            "displayName": "Nucleo [DBG 5DOF] [ETH]",
             "inherits": [
-                "mcu"
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TARGET_NUCLEO": "ON",
+                "USE_ETHERNET": "ON"
+            }
+        },
+        {
+            "name": "nucleo-release-eth-1dof",
+            "displayName": "Nucleo [REL 1DOF] [ETH]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -81,10 +77,24 @@
             }
         },
         {
-            "name": "nucleo-relwithdebinfo-eth",
-            "displayName": "Nucleo [RWD] [ETH]",
+            "name": "nucleo-release-eth-5dof",
+            "displayName": "Nucleo [REL 5DOF] [ETH]",
             "inherits": [
-                "mcu"
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "TARGET_NUCLEO": "ON",
+                "USE_ETHERNET": "ON"
+            }
+        },
+        {
+            "name": "nucleo-relwithdebinfo-eth-1dof",
+            "displayName": "Nucleo [RWD 1DOF] [ETH]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
@@ -93,122 +103,214 @@
             }
         },
         {
-            "name": "board-debug",
-            "displayName": "Board [DBG]",
+            "name": "nucleo-relwithdebinfo-eth-5dof",
+            "displayName": "Nucleo [RWD 5DOF] [ETH]",
             "inherits": [
-                "mcu"
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "TARGET_NUCLEO": "ON",
+                "USE_ETHERNET": "ON"
+            }
+        },
+        {
+            "name": "board-debug-eth-ksz8041-1dof",
+            "displayName": "Board [DBG 1DOF] [ETH] [KSZ8041]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "KSZ8041"
+            }
+        },
+        {
+            "name": "board-debug-eth-ksz8041-5dof",
+            "displayName": "Board [DBG 5DOF] [ETH] [KSZ8041]",
+            "inherits": [
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "KSZ8041"
+            }
+        },
+        {
+            "name": "board-debug-eth-lan8700-1dof",
+            "displayName": "Board [DBG 1DOF] [ETH] [LAN8700]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "LAN8700"
+            }
+        },
+        {
+            "name": "board-debug-eth-lan8700-5dof",
+            "displayName": "Board [DBG 5DOF] [ETH] [LAN8700]",
+            "inherits": [
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "LAN8700"
+            }
+        },
+        {
+            "name": "board-release-eth-ksz8041-1dof",
+            "displayName": "Board [REL 1DOF] [ETH] [KSZ8041]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "KSZ8041"
+            }
+        },
+        {
+            "name": "board-release-eth-ksz8041-5dof",
+            "displayName": "Board [REL 5DOF] [ETH] [KSZ8041]",
+            "inherits": [
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "KSZ8041"
+            }
+        },
+        {
+            "name": "board-release-eth-lan8700-1dof",
+            "displayName": "Board [REL 1DOF] [ETH] [LAN8700]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "LAN8700"
+            }
+        },
+        {
+            "name": "board-release-eth-lan8700-5dof",
+            "displayName": "Board [REL 5DOF] [ETH] [LAN8700]",
+            "inherits": [
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "LAN8700"
+            }
+        },
+        {
+            "name": "board-relwithdebinfo-eth-ksz8041-1dof",
+            "displayName": "Board [RWD 1DOF] [ETH] [KSZ8041]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "KSZ8041"
+            }
+        },
+        {
+            "name": "board-relwithdebinfo-eth-ksz8041-5dof",
+            "displayName": "Board [RWD 5DOF] [ETH] [KSZ8041]",
+            "inherits": [
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "KSZ8041"
+            }
+        },
+        {
+            "name": "board-relwithdebinfo-eth-lan8700-1dof",
+            "displayName": "Board [RWD 1DOF] [ETH] [LAN8700]",
+            "inherits": [
+                "mcu",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "LAN8700"
+            }
+        },
+        {
+            "name": "board-relwithdebinfo-eth-lan8700-5dof",
+            "displayName": "Board [RWD 5DOF] [ETH] [LAN8700]",
+            "inherits": [
+                "mcu",
+                "dof-5dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "USE_ETHERNET": "ON",
+                "PHY_TYPE": "LAN8700"
+            }
+        },
+        {
+            "name": "simulator-1dof",
+            "displayName": "Simulator [1DOF]",
+            "inherits": [
+                "sim",
+                "dof-1dof"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "board-release",
-            "displayName": "Board [REL]",
+            "name": "simulator-5dof",
+            "displayName": "Simulator [5DOF]",
             "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "board-relwithdebinfo",
-            "displayName": "Board [RWD]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
-        {
-            "name": "board-debug-eth-ksz8041",
-            "displayName": "Board [DBG] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
-            "name": "board-debug-eth-lan8700",
-            "displayName": "Board [DBG] [ETH] [LAN8700]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-release-eth-ksz8041",
-            "displayName": "Board [REL] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
-            "name": "board-release-eth-lan8700",
-            "displayName": "Board [REL] [ETH] [LAN8700]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-relwithdebinfo-eth-ksz8041",
-            "displayName": "Board [RWD] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
-            "name": "board-relwithdebinfo-eth-lan8700",
-            "displayName": "Board [RWD] [ETH] [LAN8700]",
-            "inherits": [
-                "mcu"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "simulator",
-            "displayName": "Simulator",
-            "inherits": [
-                "sim"
+                "sim",
+                "dof-5dof"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "simulator-asan",
-            "displayName": "Simulator [ASAN+UBSAN]",
+            "name": "simulator-asan-1dof",
+            "displayName": "Simulator [ASAN+UBSAN 1DOF]",
             "inherits": [
-                "sim"
+                "sim",
+                "dof-1dof"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "STLIB_ENABLE_SANITIZERS": "ON"
+            }
+        },
+        {
+            "name": "simulator-asan-5dof",
+            "displayName": "Simulator [ASAN+UBSAN 5DOF]",
+            "inherits": [
+                "sim",
+                "dof-5dof"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -218,78 +320,98 @@
     ],
     "buildPresets": [
         {
-            "name": "nucleo-debug",
-            "configurePreset": "nucleo-debug"
+            "name": "nucleo-debug-eth-1dof",
+            "configurePreset": "nucleo-debug-eth-1dof"
         },
         {
-            "name": "nucleo-release",
-            "configurePreset": "nucleo-release"
+            "name": "nucleo-debug-eth-5dof",
+            "configurePreset": "nucleo-debug-eth-5dof"
         },
         {
-            "name": "nucleo-relwithdebinfo",
-            "configurePreset": "nucleo-relwithdebinfo"
+            "name": "nucleo-release-eth-1dof",
+            "configurePreset": "nucleo-release-eth-1dof"
         },
         {
-            "name": "nucleo-debug-eth",
-            "configurePreset": "nucleo-debug-eth"
+            "name": "nucleo-release-eth-5dof",
+            "configurePreset": "nucleo-release-eth-5dof"
         },
         {
-            "name": "nucleo-release-eth",
-            "configurePreset": "nucleo-release-eth"
+            "name": "nucleo-relwithdebinfo-eth-1dof",
+            "configurePreset": "nucleo-relwithdebinfo-eth-1dof"
         },
         {
-            "name": "nucleo-relwithdebinfo-eth",
-            "configurePreset": "nucleo-relwithdebinfo-eth"
+            "name": "nucleo-relwithdebinfo-eth-5dof",
+            "configurePreset": "nucleo-relwithdebinfo-eth-5dof"
         },
         {
-            "name": "board-debug",
-            "configurePreset": "board-debug"
+            "name": "board-debug-eth-ksz8041-1dof",
+            "configurePreset": "board-debug-eth-ksz8041-1dof"
         },
         {
-            "name": "board-release",
-            "configurePreset": "board-release"
+            "name": "board-debug-eth-ksz8041-5dof",
+            "configurePreset": "board-debug-eth-ksz8041-5dof"
         },
         {
-            "name": "board-relwithdebinfo",
-            "configurePreset": "board-relwithdebinfo"
+            "name": "board-debug-eth-lan8700-1dof",
+            "configurePreset": "board-debug-eth-lan8700-1dof"
         },
         {
-            "name": "board-debug-eth-ksz8041",
-            "configurePreset": "board-debug-eth-ksz8041"
+            "name": "board-debug-eth-lan8700-5dof",
+            "configurePreset": "board-debug-eth-lan8700-5dof"
         },
         {
-            "name": "board-debug-eth-lan8700",
-            "configurePreset": "board-debug-eth-lan8700"
+            "name": "board-release-eth-ksz8041-1dof",
+            "configurePreset": "board-release-eth-ksz8041-1dof"
         },
         {
-            "name": "board-release-eth-ksz8041",
-            "configurePreset": "board-release-eth-ksz8041"
+            "name": "board-release-eth-ksz8041-5dof",
+            "configurePreset": "board-release-eth-ksz8041-5dof"
         },
         {
-            "name": "board-release-eth-lan8700",
-            "configurePreset": "board-release-eth-lan8700"
+            "name": "board-release-eth-lan8700-1dof",
+            "configurePreset": "board-release-eth-lan8700-1dof"
         },
         {
-            "name": "board-relwithdebinfo-eth-ksz8041",
-            "configurePreset": "board-relwithdebinfo-eth-ksz8041"
+            "name": "board-release-eth-lan8700-5dof",
+            "configurePreset": "board-release-eth-lan8700-5dof"
         },
         {
-            "name": "board-relwithdebinfo-eth-lan8700",
-            "configurePreset": "board-relwithdebinfo-eth-lan8700"
+            "name": "board-relwithdebinfo-eth-ksz8041-1dof",
+            "configurePreset": "board-relwithdebinfo-eth-ksz8041-1dof"
         },
         {
-            "name": "simulator",
-            "configurePreset": "simulator"
+            "name": "board-relwithdebinfo-eth-ksz8041-5dof",
+            "configurePreset": "board-relwithdebinfo-eth-ksz8041-5dof"
         },
         {
-            "name": "simulator-asan",
-            "configurePreset": "simulator-asan"
+            "name": "board-relwithdebinfo-eth-lan8700-1dof",
+            "configurePreset": "board-relwithdebinfo-eth-lan8700-1dof"
+        },
+        {
+            "name": "board-relwithdebinfo-eth-lan8700-5dof",
+            "configurePreset": "board-relwithdebinfo-eth-lan8700-5dof"
+        },
+        {
+            "name": "simulator-1dof",
+            "configurePreset": "simulator-1dof"
+        },
+        {
+            "name": "simulator-5dof",
+            "configurePreset": "simulator-5dof"
+        },
+        {
+            "name": "simulator-asan-1dof",
+            "configurePreset": "simulator-asan-1dof"
+        },
+        {
+            "name": "simulator-asan-5dof",
+            "configurePreset": "simulator-asan-5dof"
         }
     ],
     "testPresets": [
         {
-            "name": "simulator-all",
-            "configurePreset": "simulator",
+            "name": "simulator-all-1dof",
+            "configurePreset": "simulator-1dof",
             "output": {
                 "outputOnFailure": true
             },
@@ -298,8 +420,24 @@
             }
         },
         {
-            "name": "simulator-adc",
-            "inherits": "simulator-all",
+            "name": "simulator-all-5dof",
+            "configurePreset": "simulator-5dof",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            }
+        },
+        {
+            "name": "simulator-adc-1dof",
+            "configurePreset": "simulator-1dof",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            },
             "filter": {
                 "include": {
                     "name": "ADCTest"
@@ -307,8 +445,33 @@
             }
         },
         {
-            "name": "simulator-all-asan",
-            "configurePreset": "simulator-asan",
+            "name": "simulator-adc-5dof",
+            "configurePreset": "simulator-5dof",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            },
+            "filter": {
+                "include": {
+                    "name": "ADCTest"
+                }
+            }
+        },
+        {
+            "name": "simulator-all-asan-1dof",
+            "configurePreset": "simulator-asan-1dof",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            }
+        },
+        {
+            "name": "simulator-all-asan-5dof",
+            "configurePreset": "simulator-asan-5dof",
             "output": {
                 "outputOnFailure": true
             },
