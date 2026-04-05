@@ -61,6 +61,12 @@ inline void reset_slave() {
     }
     HAL_Delay(100); // Ensure slave has time to reset
     LCU_Master::slave_fault_triggered = false;
+
+    // Clean comms flags and states
+    send_flag = false;
+    spi_flag = false;
+    receive_flag = false;
+    operation_flag = false;
 }
 
 inline void start() {
@@ -133,38 +139,40 @@ inline bool is_connected() {
 #endif
 }
 
-inline void clear_flags() {
-    OrderPackets::Stop_All_flag = false;
-    OrderPackets::Levitate_flag = false;
-    OrderPackets::Stop_Levitate_flag = false;
-    OrderPackets::Current_Control_flag = false;
-    OrderPackets::Start_PWM_flag = false;
-    OrderPackets::Stop_PWM_flag = false;
-    OrderPackets::Enable_Buffer_flag = false;
-    OrderPackets::Disable_Buffer_flag = false;
-    OrderPackets::Set_Fixed_VBAT_flag = false;
-    OrderPackets::Unset_Fixed_VBAT_flag = false;
-    OrderPackets::Set_Control_Params_flag = false;
-    OrderPackets::Reset_Slave_flag = false;
-    OrderPackets::Reset_Master_flag = false;
-    OrderPackets::Reset_All_flag = false;
-}
-
 
 inline void update() {
 #ifdef STLIB_ETH
     g_eth->update();
 #endif
 
+
+    if (OrderPackets::Reset_Master_flag) { // Should remove
+        OrderPackets::Reset_Master_flag = false;
+        HAL_NVIC_SystemReset();
+    }
+
+    if (OrderPackets::Reset_Slave_flag) {
+        OrderPackets::Reset_Slave_flag = false;
+        reset_slave();
+
+    }
+
+    if (OrderPackets::Reset_All_flag) {
+        OrderPackets::Reset_All_flag = false;
+        HAL_NVIC_SystemReset();
+    }
+
     // SPI Communication Logic
     if (!operation_flag) {
 
         if (OrderPackets::Stop_All_flag) {
+            OrderPackets::Stop_All_flag = false;
             communications.command_packet.flags = CommandFlags::NONE;
             levitating_state = false;
         }
 
         if (OrderPackets::Levitate_flag) {
+            OrderPackets::Levitate_flag = false;
             communications.command_packet.flags =
                 communications.command_packet.flags | CommandFlags::LEVITATE;
             communications.command_packet.levitate.desired_distance = desired_levitation_distance / 1000.0f; // Convert mm to m
@@ -172,12 +180,14 @@ inline void update() {
         }
 
         if (OrderPackets::Stop_Levitate_flag) {
+            OrderPackets::Stop_Levitate_flag = false;
             communications.command_packet.flags =
                 communications.command_packet.flags & ~CommandFlags::LEVITATE;
             levitating_state = false;
         }
 
         if (OrderPackets::Current_Control_flag) {
+            OrderPackets::Current_Control_flag = false;
             communications.command_packet.flags =
                 communications.command_packet.flags | CommandFlags::CURRENT_CONTROL;
 #ifdef USE_1_DOF
@@ -191,6 +201,7 @@ inline void update() {
         }
 
         if (OrderPackets::Start_PWM_flag) {
+            OrderPackets::Start_PWM_flag = false;
 #ifdef USE_1_DOF
             LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = pwm_duty_cycle;
             LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = true;
@@ -221,6 +232,7 @@ inline void update() {
         }
 
         if (OrderPackets::Stop_PWM_flag) {
+            OrderPackets::Stop_PWM_flag = false;
 #ifdef USE_1_DOF
             LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false;
 #elif defined(USE_5_DOF)
@@ -240,6 +252,7 @@ inline void update() {
         }
 
         if (OrderPackets::Enable_Buffer_flag) {
+            OrderPackets::Enable_Buffer_flag = false;
             communications.command_packet.flags =
                 communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
 #ifdef USE_1_DOF
@@ -256,6 +269,7 @@ inline void update() {
         }
 
         if (OrderPackets::Disable_Buffer_flag) {
+            OrderPackets::Disable_Buffer_flag = false;
 #ifdef USE_1_DOF
             LCU_Master::lpu_array->disable_pair(0); // Convert to 0-based index
             communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &=
@@ -274,6 +288,7 @@ inline void update() {
         }
 
         if (OrderPackets::Set_Fixed_VBAT_flag) {
+            OrderPackets::Set_Fixed_VBAT_flag = false;
 #ifdef USE_1_DOF
             LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = true;
             LCU_Master::lpu_array->get_lpu<0>().fixed_vbat = fixed_vbat;
@@ -292,6 +307,7 @@ inline void update() {
         }
 
         if (OrderPackets::Unset_Fixed_VBAT_flag) {
+            OrderPackets::Unset_Fixed_VBAT_flag = false;
 #ifdef USE_1_DOF
             LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = false;
 #elif defined(USE_5_DOF)
@@ -309,22 +325,9 @@ inline void update() {
         }
 
         if (OrderPackets::Set_Control_Params_flag) {
+            OrderPackets::Set_Control_Params_flag = false;
             // TODO
         }
-
-        if (OrderPackets::Reset_Master_flag) { // Should remove
-            HAL_NVIC_SystemReset();
-        }
-
-        if (OrderPackets::Reset_Slave_flag) {
-            reset_slave();
-        }
-
-        if (OrderPackets::Reset_All_flag) {
-            HAL_NVIC_SystemReset();
-        }
-
-        clear_flags();
 
         // // SPI Timeout Logic
         // if (spi_connected && HAL_GetTick() - last_spi_packet_ms > SPI_TIMEOUT_MS) {
