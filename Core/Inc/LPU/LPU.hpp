@@ -117,9 +117,75 @@ public:
         apply_to_pin(pin_index, [](auto pin) { pin->turn_on(); });
     }
 
+    // Bulk operations for PWM and VBAT control
+    void set_all_fixed_duty_cycle(float duty_cycle) {
+        std::apply([duty_cycle](auto*... lpu) {
+            (..., (lpu->fixed_duty_cycle = duty_cycle, lpu->is_fixed_duty_cycle = true));
+        }, lpus);
+    }
+
+    void clear_all_fixed_duty_cycle() {
+        std::apply([](auto*... lpu) {
+            (..., (lpu->is_fixed_duty_cycle = false));
+        }, lpus);
+    }
+
+    void set_all_fixed_vbat(float vbat) {
+        std::apply([vbat](auto*... lpu) {
+            (..., (lpu->fixed_vbat = vbat, lpu->is_fixed_vbat = true));
+        }, lpus);
+    }
+
+    void clear_all_fixed_vbat() {
+        std::apply([](auto*... lpu) {
+            (..., (lpu->is_fixed_vbat = false));
+        }, lpus);
+    }
+
+    // Indexed operations for individual LPU control
+    void set_indexed_fixed_duty_cycle(size_t index, float duty_cycle) {
+        if (index >= LpuCount) return;
+        apply_to_lpu(index, [duty_cycle](auto* lpu) {
+            lpu->fixed_duty_cycle = duty_cycle;
+            lpu->is_fixed_duty_cycle = true;
+        });
+    }
+
+    void clear_indexed_fixed_duty_cycle(size_t index) {
+        if (index >= LpuCount) return;
+        apply_to_lpu(index, [](auto* lpu) {
+            lpu->is_fixed_duty_cycle = false;
+        });
+    }
+
+    void set_indexed_fixed_vbat(size_t index, float vbat) {
+        if (index >= LpuCount) return;
+        apply_to_lpu(index, [vbat](auto* lpu) {
+            lpu->fixed_vbat = vbat;
+            lpu->is_fixed_vbat = true;
+        });
+    }
+
+    void clear_indexed_fixed_vbat(size_t index) {
+        if (index >= LpuCount) return;
+        apply_to_lpu(index, [](auto* lpu) {
+            lpu->is_fixed_vbat = false;
+        });
+    }
+
     bool is_all_ok() const { return all_ok; }
 
 private:
+    template <typename Func> void apply_to_lpu(size_t index, Func&& func) {
+        apply_to_lpu_impl(index, std::forward<Func>(func), std::index_sequence_for<LPUs...>{});
+    }
+
+    template <typename Func, size_t... Is>
+    void apply_to_lpu_impl(size_t index, Func&& func, std::index_sequence<Is...>) {
+        (void)index;
+        (void)func;
+        (((Is == index) && (func(std::get<Is>(lpus)), true)) || ...);
+    }
     template <typename Func> void apply_to_pin(size_t pin_index, Func&& func) {
         apply_to_pin_impl(pin_index, std::forward<Func>(func), std::index_sequence_for<ResetPins...>{});
     }

@@ -89,10 +89,10 @@ inline void init() {
     LCU_StateMachine::start();
 
 #ifdef USE_1_DOF
-    CommsFrame::init(Comms::communications, lpu_inst, Comms::communications, lpu_inst, airgap_inst);
+    CommsFrame::init(Comms::control, lpu_inst, Comms::slave_state, lpu_inst, airgap_inst);
 #elif defined(USE_5_DOF)
-    CommsFrame::init(Comms::communications, lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10,
-                      Comms::communications, lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10,
+    CommsFrame::init(Comms::control, lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10,
+                      Comms::slave_state, lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10,
                       airgap1, airgap2, airgap3, airgap4, airgap5, airgap6, airgap7, airgap8);
 #endif
 
