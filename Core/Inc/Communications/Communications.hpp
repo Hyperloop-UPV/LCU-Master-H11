@@ -225,16 +225,16 @@ inline void update() {
             LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false;
 #elif defined(USE_5_DOF)
             switch(stop_pwm_id) {
-                case 1: LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false; break;
-                case 2: LCU_Master::lpu_array->get_lpu<1>().is_fixed_duty_cycle = false; break;
-                case 3: LCU_Master::lpu_array->get_lpu<2>().is_fixed_duty_cycle = false; break;
-                case 4: LCU_Master::lpu_array->get_lpu<3>().is_fixed_duty_cycle = false; break;
-                case 5: LCU_Master::lpu_array->get_lpu<4>().is_fixed_duty_cycle = false; break;
-                case 6: LCU_Master::lpu_array->get_lpu<5>().is_fixed_duty_cycle = false; break;
-                case 7: LCU_Master::lpu_array->get_lpu<6>().is_fixed_duty_cycle = false; break;
-                case 8: LCU_Master::lpu_array->get_lpu<7>().is_fixed_duty_cycle = false; break;
-                case 9: LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = false; break;
-                case 10: LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = false; break;
+                case 1: LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = 0; break;
+                case 2: LCU_Master::lpu_array->get_lpu<1>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<1>().fixed_duty_cycle = 0; break;
+                case 3: LCU_Master::lpu_array->get_lpu<2>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<2>().fixed_duty_cycle = 0; break;
+                case 4: LCU_Master::lpu_array->get_lpu<3>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<3>().fixed_duty_cycle = 0; break;
+                case 5: LCU_Master::lpu_array->get_lpu<4>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<4>().fixed_duty_cycle = 0; break;
+                case 6: LCU_Master::lpu_array->get_lpu<5>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<5>().fixed_duty_cycle = 0; break;
+                case 7: LCU_Master::lpu_array->get_lpu<6>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<6>().fixed_duty_cycle = 0; break;
+                case 8: LCU_Master::lpu_array->get_lpu<7>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<7>().fixed_duty_cycle = 0; break;
+                case 9: LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<8>().fixed_duty_cycle = 0; break;
+                case 10: LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<9>().fixed_duty_cycle = 0; break;
             }
 #endif
         }
@@ -248,7 +248,7 @@ inline void update() {
                 (1 << 0);
 #elif defined(USE_5_DOF)
             LCU_Master::lpu_array->enable_pair(enable_buffer_id - 1); // Convert to 0-based index
-            if (enable_buffer_id > 0 && enable_buffer_id <= 10) {
+            if (enable_buffer_id > 0 && enable_buffer_id <= 5) {
                 communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
                     (1 << (enable_buffer_id - 1));
             }
@@ -262,7 +262,7 @@ inline void update() {
                 ~(1 << 0);
 #elif defined(USE_5_DOF)
             LCU_Master::lpu_array->disable_pair(disable_buffer_id - 1); // Convert to 0-based index
-            if (disable_buffer_id > 0 && disable_buffer_id <= 10) {
+            if (disable_buffer_id > 0 && disable_buffer_id <= 5) {
                 communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &=
                     ~(1 << (disable_buffer_id - 1));
             }

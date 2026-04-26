@@ -68,8 +68,8 @@ public:
             std::get<0>(reset_pins)->turn_off();
             return;
         }
-        constexpr size_t PinIndex = LpuIndex / 2;
-        std::get<PinIndex>(reset_pins)->turn_on();
+        constexpr size_t PinIndex = LpuIndex;
+        std::get<PinIndex>(reset_pins)->turn_off();
     }
 
     template <size_t LpuIndex> void enable_pair() {
@@ -77,8 +77,8 @@ public:
             std::get<0>(reset_pins)->turn_on();
             return;
         }
-        constexpr size_t PinIndex = LpuIndex / 2;
-        std::get<PinIndex>(reset_pins)->turn_off();
+        constexpr size_t PinIndex = LpuIndex;
+        std::get<PinIndex>(reset_pins)->turn_on();
     }
 
     void disable_all() {
@@ -103,8 +103,8 @@ public:
             return;
         }
         if (lpu_index >= LpuCount) return; // Out of bounds check
-        size_t pin_index = lpu_index / 2;
-        apply_to_pin(pin_index, [](auto pin) { pin->turn_off(); });
+        size_t pin_index = lpu_index;
+        apply_to_pin(pin_index, [](auto pin) { pin->turn_on(); });
     }
 
     void disable_pair(size_t lpu_index) {
@@ -113,8 +113,8 @@ public:
             return;
         }
         if (lpu_index >= LpuCount) return; // Out of bounds check
-        size_t pin_index = lpu_index / 2;
-        apply_to_pin(pin_index, [](auto pin) { pin->turn_on(); });
+        size_t pin_index = lpu_index;
+        apply_to_pin(pin_index, [](auto pin) { pin->turn_off(); });
     }
 
     bool is_all_ok() const { return all_ok; }
