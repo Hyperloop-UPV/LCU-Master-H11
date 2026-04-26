@@ -116,34 +116,8 @@
             }
         },
         {
-            "name": "board-debug-eth-ksz8041-1dof",
-            "displayName": "Board [DBG 1DOF] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
-            "name": "board-debug-eth-ksz8041-5dof",
-            "displayName": "Board [DBG 5DOF] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
             "name": "board-debug-eth-lan8700-1dof",
-            "displayName": "Board [DBG 1DOF] [ETH] [LAN8700]",
+            "displayName": "Board [DBG 1DOF] [ETH]",
             "inherits": [
                 "mcu",
                 "dof-1dof"
@@ -156,7 +130,7 @@
         },
         {
             "name": "board-debug-eth-lan8700-5dof",
-            "displayName": "Board [DBG 5DOF] [ETH] [LAN8700]",
+            "displayName": "Board [DBG 5DOF] [ETH]",
             "inherits": [
                 "mcu",
                 "dof-5dof"
@@ -168,34 +142,8 @@
             }
         },
         {
-            "name": "board-release-eth-ksz8041-1dof",
-            "displayName": "Board [REL 1DOF] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
-            "name": "board-release-eth-ksz8041-5dof",
-            "displayName": "Board [REL 5DOF] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
             "name": "board-release-eth-lan8700-1dof",
-            "displayName": "Board [REL 1DOF] [ETH] [LAN8700]",
+            "displayName": "Board [REL 1DOF] [ETH]",
             "inherits": [
                 "mcu",
                 "dof-1dof"
@@ -208,7 +156,7 @@
         },
         {
             "name": "board-release-eth-lan8700-5dof",
-            "displayName": "Board [REL 5DOF] [ETH] [LAN8700]",
+            "displayName": "Board [REL 5DOF] [ETH]",
             "inherits": [
                 "mcu",
                 "dof-5dof"
@@ -220,34 +168,8 @@
             }
         },
         {
-            "name": "board-relwithdebinfo-eth-ksz8041-1dof",
-            "displayName": "Board [RWD 1DOF] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
-            "name": "board-relwithdebinfo-eth-ksz8041-5dof",
-            "displayName": "Board [RWD 5DOF] [ETH] [KSZ8041]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "KSZ8041"
-            }
-        },
-        {
             "name": "board-relwithdebinfo-eth-lan8700-1dof",
-            "displayName": "Board [RWD 1DOF] [ETH] [LAN8700]",
+            "displayName": "Board [RWD 1DOF] [ETH]",
             "inherits": [
                 "mcu",
                 "dof-1dof"
@@ -260,7 +182,7 @@
         },
         {
             "name": "board-relwithdebinfo-eth-lan8700-5dof",
-            "displayName": "Board [RWD 5DOF] [ETH] [LAN8700]",
+            "displayName": "Board [RWD 5DOF] [ETH]",
             "inherits": [
                 "mcu",
                 "dof-5dof"
@@ -344,14 +266,6 @@
             "configurePreset": "nucleo-relwithdebinfo-eth-5dof"
         },
         {
-            "name": "board-debug-eth-ksz8041-1dof",
-            "configurePreset": "board-debug-eth-ksz8041-1dof"
-        },
-        {
-            "name": "board-debug-eth-ksz8041-5dof",
-            "configurePreset": "board-debug-eth-ksz8041-5dof"
-        },
-        {
             "name": "board-debug-eth-lan8700-1dof",
             "configurePreset": "board-debug-eth-lan8700-1dof"
         },
@@ -360,28 +274,12 @@
             "configurePreset": "board-debug-eth-lan8700-5dof"
         },
         {
-            "name": "board-release-eth-ksz8041-1dof",
-            "configurePreset": "board-release-eth-ksz8041-1dof"
-        },
-        {
-            "name": "board-release-eth-ksz8041-5dof",
-            "configurePreset": "board-release-eth-ksz8041-5dof"
-        },
-        {
             "name": "board-release-eth-lan8700-1dof",
             "configurePreset": "board-release-eth-lan8700-1dof"
         },
         {
             "name": "board-release-eth-lan8700-5dof",
             "configurePreset": "board-release-eth-lan8700-5dof"
-        },
-        {
-            "name": "board-relwithdebinfo-eth-ksz8041-1dof",
-            "configurePreset": "board-relwithdebinfo-eth-ksz8041-1dof"
-        },
-        {
-            "name": "board-relwithdebinfo-eth-ksz8041-5dof",
-            "configurePreset": "board-relwithdebinfo-eth-ksz8041-5dof"
         },
         {
             "name": "board-relwithdebinfo-eth-lan8700-1dof",
