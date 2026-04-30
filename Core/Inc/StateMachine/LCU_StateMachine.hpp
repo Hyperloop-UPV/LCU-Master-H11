@@ -89,7 +89,7 @@ static inline constinit auto general_state_machine = []() consteval {
 
     sm.add_exit_action([]() { LCU_Master::led_fault->turn_off(); }, fault_state);
 
-    sm.add_cyclic_action([]() { LCU_Master::lpu_array->update_all(); }, 100us, operational_state);
+    sm.add_cyclic_action([]() { LCU_Master::lpu_array->update_all(); }, 1ms, operational_state);
 
     return sm;
 }();

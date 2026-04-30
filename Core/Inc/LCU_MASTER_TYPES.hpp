@@ -59,7 +59,7 @@ inline constexpr auto spi_req =
     ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
         ST_LIB::SPIDomain::SPIMode::MASTER,
         ST_LIB::SPIDomain::SPIPeripheral::spi3,
-        1000000, // (TODO) Test higher speeds
+        50'000'000,
         Pinout::spi_sck,
         Pinout::spi_miso,
         Pinout::spi_mosi,
