@@ -27,7 +27,7 @@ constexpr auto eth = EthernetDomain::Ethernet(
     EthernetDomain::PINSET_H10,
     "00:80:e1:00:01:07",
     "192.168.1.4",
-    "255.255.0.0"
+    "255.255.255.0"
 );
 #elif defined(USE_PHY_KSZ8041)
 constexpr auto eth = EthernetDomain::Ethernet(
@@ -59,7 +59,7 @@ inline constexpr auto spi_req =
     ST_LIB::SPIDomain::Device<DMA_Domain::Stream::dma1_stream0, DMA_Domain::Stream::dma1_stream1>(
         ST_LIB::SPIDomain::SPIMode::MASTER,
         ST_LIB::SPIDomain::SPIPeripheral::spi3,
-        50'000'000,
+        1'000'000,
         Pinout::spi_sck,
         Pinout::spi_miso,
         Pinout::spi_mosi,

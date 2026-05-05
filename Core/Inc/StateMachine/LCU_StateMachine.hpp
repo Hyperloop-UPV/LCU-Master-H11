@@ -24,6 +24,13 @@ static constexpr auto operational_state = make_state(
     Transition<GeneralStates>{
         GeneralStates::Fault,
         []() {
+            if (!Comms::is_connected()) {
+                ErrorHandler("SPI Disconnected");
+            } else if (LCU_Master::slave_fault_triggered) {
+                ErrorHandler("Slave Fault Triggered");
+            } else if (!LCU_Master::lpu_array->is_all_ok()) {
+                ErrorHandler("LPU Array Fault Detected");
+            }
             return !Comms::is_connected() || LCU_Master::slave_fault_triggered ||
                    !LCU_Master::lpu_array->is_all_ok(); // || other things
         }
@@ -94,9 +101,15 @@ static inline constinit auto general_state_machine = []() consteval {
     return sm;
 }();
 
-void start() { general_state_machine.start(); }
+void start() {
+    ProtectionManager::link_state_machine(general_state_machine, static_cast<uint8_t>(GeneralStates::Fault));
+    ProtectionManager::add_standard_protections();
+    ProtectionManager::initialize();
+    general_state_machine.start();
+}
 
 void update() {
+    ProtectionManager::check_protections();
     general_state_machine.check_transitions();
     LCU_Master::general_state_machine_state = general_state_machine.get_current_state();
     LCU_Master::operational_state_machine_state = operational_state_machine.get_current_state();

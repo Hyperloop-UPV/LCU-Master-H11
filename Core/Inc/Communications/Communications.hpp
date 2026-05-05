@@ -54,6 +54,10 @@ float airgap_measurements[8] = {0.0f};
 #endif
 
 float levitation_distance = 0.0f;
+float desired_current_1 = 0.0f;
+float desired_current_2 = 0.0f;
+float desired_current_3 = 0.0f;
+float desired_current_4 = 0.0f;
 
 inline void reset_slave() {
     for (int i = 0; i < 5; i++) {
@@ -113,7 +117,7 @@ inline void start() {
         LCU_Master::general_state_machine_state,
         LCU_Master::operational_state_machine_state
     );
-    DataPackets::General_State_init(levitation_distance);
+    DataPackets::General_State_init(levitation_distance, desired_current_1, desired_current_2, desired_current_3, desired_current_4);
 
     DataPackets::start();
     OrderPackets::start();
@@ -422,6 +426,10 @@ inline void update() {
             airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v * 1000.0f; // Convert to mm
 #endif
             levitation_distance = communications.command_packet.levitate.desired_distance * 1000.0f; // Convert to mm
+            desired_current_1 = communications.status_packet.desired_current1;
+            desired_current_2 = communications.status_packet.desired_current2;
+            desired_current_3 = communications.status_packet.desired_current3;
+            desired_current_4 = communications.status_packet.desired_current4;
         }
 
         operation_flag = false;
