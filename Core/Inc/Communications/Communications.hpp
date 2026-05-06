@@ -58,6 +58,12 @@ float desired_current_1 = 0.0f;
 float desired_current_2 = 0.0f;
 float desired_current_3 = 0.0f;
 float desired_current_4 = 0.0f;
+float state_0 = 0.0f;
+float state_1 = 0.0f;
+float state_2 = 0.0f;
+float state_3 = 0.0f;
+float state_4 = 0.0f;
+auto slave_state = DataPackets::slave_state_machine::SPI_Connecting;
 
 inline void reset_slave() {
     for (int i = 0; i < 5; i++) {
@@ -116,9 +122,10 @@ inline void start() {
 #endif
     DataPackets::State_Machine_init(
         LCU_Master::general_state_machine_state,
-        LCU_Master::operational_state_machine_state
+        LCU_Master::operational_state_machine_state,
+        slave_state
     );
-    DataPackets::General_State_init(levitation_distance, desired_current_1, desired_current_2, desired_current_3, desired_current_4);
+    DataPackets::General_State_init(levitation_distance, desired_current_1, desired_current_2, desired_current_3, desired_current_4, state_0, state_1, state_2, state_3, state_4);
 
     DataPackets::start();
     OrderPackets::start();
@@ -446,6 +453,13 @@ inline void update() {
             desired_current_2 = communications.status_packet.desired_current2;
             desired_current_3 = communications.status_packet.desired_current3;
             desired_current_4 = communications.status_packet.desired_current4;
+            state_0 = communications.status_packet.state0;
+            state_1 = communications.status_packet.state1;
+            state_2 = communications.status_packet.state2;
+            state_3 = communications.status_packet.state3;
+            state_4 = communications.status_packet.state4;
+
+            slave_state = static_cast<DataPackets::slave_state_machine>(communications.status_packet.slave_state);
         }
 
         operation_flag = false;
