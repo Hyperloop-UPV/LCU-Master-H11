@@ -100,6 +100,7 @@ inline void start() {
     OrderPackets::Reset_Master_init();
     OrderPackets::Reset_Slave_init();
     OrderPackets::Reset_All_init();
+    OrderPackets::All_Current_Control_and_enable_buffers_init();
 
     // Initialize Data Packets
 #ifdef USE_1_DOF
@@ -150,6 +151,7 @@ inline void clear_flags() {
     OrderPackets::Reset_Slave_flag = false;
     OrderPackets::Reset_Master_flag = false;
     OrderPackets::Reset_All_flag = false;
+    OrderPackets::All_Current_Control_and_enable_buffers_flag = false;
 }
 
 uint32_t last_tick = 0;
@@ -171,6 +173,20 @@ inline void update() {
             communications.command_packet.levitate.desired_distance = new_desired_distance;
         }
         last_tick = tick;
+    }
+
+    if (OrderPackets::All_Current_Control_and_enable_buffers_flag) {
+        communications.command_packet.flags =
+            communications.command_packet.flags | CommandFlags::CURRENT_CONTROL | CommandFlags::ENABLE_LPU_BUFFER;
+#ifdef USE_1_DOF
+        communications.command_packet.current_control.lpu_id_bitmask = 0x01;
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b00001; // Force enable buffer for LPU 1
+#elif defined(USE_5_DOF)
+        communications.command_packet.current_control.lpu_id_bitmask = 0x1F; // Enable all 5 LPUs
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b11111; // Force enable buffers for all 5 LPUs
+#endif
+        LCU_Master::lpu_array->enable_all();
+        communications.command_packet.current_control.desired_current = desired_current;
     }
 
     if (OrderPackets::Stop_All_flag) {
