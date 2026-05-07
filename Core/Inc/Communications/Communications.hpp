@@ -64,6 +64,10 @@ float state_2 = 0.0f;
 float state_3 = 0.0f;
 float state_4 = 0.0f;
 auto slave_state = DataPackets::slave_state_machine::SPI_Connecting;
+float local_airgap_1 = 0.0f;
+float local_airgap_2 = 0.0f;
+float local_airgap_3 = 0.0f;
+float local_airgap_4 = 0.0f;
 
 inline void reset_slave() {
     for (int i = 0; i < 5; i++) {
@@ -106,7 +110,7 @@ inline void start() {
     OrderPackets::Reset_Master_init();
     OrderPackets::Reset_Slave_init();
     OrderPackets::Reset_All_init();
-    OrderPackets::All_Current_Control_and_enable_buffers_init();
+    OrderPackets::All_Current_Control_and_enable_buffers_init(desired_current);
 
     // Initialize Data Packets
 #ifdef USE_1_DOF
@@ -125,7 +129,7 @@ inline void start() {
         LCU_Master::operational_state_machine_state,
         slave_state
     );
-    DataPackets::General_State_init(levitation_distance, desired_current_1, desired_current_2, desired_current_3, desired_current_4, state_0, state_1, state_2, state_3, state_4);
+    DataPackets::General_State_init(levitation_distance, desired_current_1, desired_current_2, desired_current_3, desired_current_4, state_0, state_1, state_2, state_3, state_4, local_airgap_1, local_airgap_2, local_airgap_3, local_airgap_4);
 
     DataPackets::start();
     OrderPackets::start();
@@ -189,8 +193,8 @@ inline void update() {
         communications.command_packet.current_control.lpu_id_bitmask = 0x01;
         communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b00001; // Force enable buffer for LPU 1
 #elif defined(USE_5_DOF)
-        communications.command_packet.current_control.lpu_id_bitmask = 0x1F; // Enable all 5 LPUs
-        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b11111; // Force enable buffers for all 5 LPUs
+        communications.command_packet.current_control.lpu_id_bitmask = 0b1111111111; // Enable all 10 LPUs
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b11111; // Force enable buffers for all 10 LPUs
 #endif
         LCU_Master::lpu_array->enable_all();
         communications.command_packet.current_control.desired_current = desired_current;
@@ -426,7 +430,7 @@ inline void update() {
 #ifdef USE_1_DOF
             vbat = LCU_Master::lpu_array->get_lpu<0>().vbat_v;
             shunt = LCU_Master::lpu_array->get_lpu<0>().shunt_v;
-            airgap = LCU_Master::airgap_array->get_airgap<0>().airgap_v * 1000.0f; // Convert to mm
+            airgap = LCU_Master::airgap_array->get_airgap<0>().airgap_v; // Convert to mm
             curr_pwm_duty_cycle = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
 #elif defined(USE_5_DOF)
             lpu_vbat[0] = LCU_Master::lpu_array->get_lpu<0>().vbat_v; lpu_shunt[0] = LCU_Master::lpu_array->get_lpu<0>().shunt_v; lpu_pwm_duty[0] = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
@@ -439,14 +443,14 @@ inline void update() {
             lpu_vbat[7] = LCU_Master::lpu_array->get_lpu<7>().vbat_v; lpu_shunt[7] = LCU_Master::lpu_array->get_lpu<7>().shunt_v; lpu_pwm_duty[7] = LCU_Master::lpu_array->get_lpu<7>().duty_cycle;
             lpu_vbat[8] = LCU_Master::lpu_array->get_lpu<8>().vbat_v; lpu_shunt[8] = LCU_Master::lpu_array->get_lpu<8>().shunt_v; lpu_pwm_duty[8] = LCU_Master::lpu_array->get_lpu<8>().duty_cycle;
             lpu_vbat[9] = LCU_Master::lpu_array->get_lpu<9>().vbat_v; lpu_shunt[9] = LCU_Master::lpu_array->get_lpu<9>().shunt_v; lpu_pwm_duty[9] = LCU_Master::lpu_array->get_lpu<9>().duty_cycle;
-            airgap_measurements[0] = LCU_Master::airgap_array->get_airgap<0>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[1] = LCU_Master::airgap_array->get_airgap<1>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[2] = LCU_Master::airgap_array->get_airgap<2>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[3] = LCU_Master::airgap_array->get_airgap<3>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[4] = LCU_Master::airgap_array->get_airgap<4>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[5] = LCU_Master::airgap_array->get_airgap<5>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[6] = LCU_Master::airgap_array->get_airgap<6>().airgap_v * 1000.0f; // Convert to mm
-            airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v * 1000.0f; // Convert to mm
+            airgap_measurements[0] = LCU_Master::airgap_array->get_airgap<0>().airgap_v; // Convert to mm
+            airgap_measurements[1] = LCU_Master::airgap_array->get_airgap<1>().airgap_v; // Convert to mm
+            airgap_measurements[2] = LCU_Master::airgap_array->get_airgap<2>().airgap_v; // Convert to mm
+            airgap_measurements[3] = LCU_Master::airgap_array->get_airgap<3>().airgap_v; // Convert to mm
+            airgap_measurements[4] = LCU_Master::airgap_array->get_airgap<4>().airgap_v; // Convert to mm
+            airgap_measurements[5] = LCU_Master::airgap_array->get_airgap<5>().airgap_v; // Convert to mm
+            airgap_measurements[6] = LCU_Master::airgap_array->get_airgap<6>().airgap_v; // Convert to mm
+            airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v; // Convert to mm
 #endif
             levitation_distance = communications.command_packet.levitate.desired_distance * 1000.0f; // Convert to mm
             desired_current_1 = communications.status_packet.desired_current1;
@@ -460,6 +464,11 @@ inline void update() {
             state_4 = communications.status_packet.state4;
 
             slave_state = static_cast<DataPackets::slave_state_machine>(communications.status_packet.slave_state);
+
+            local_airgap_1 = communications.status_packet.airgap_local_1;
+            local_airgap_2 = communications.status_packet.airgap_local_2;
+            local_airgap_3 = communications.status_packet.airgap_local_3;
+            local_airgap_4 = communications.status_packet.airgap_local_4;
         }
 
         operation_flag = false;
