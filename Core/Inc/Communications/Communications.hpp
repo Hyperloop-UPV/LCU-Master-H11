@@ -27,7 +27,6 @@ inline bool spi_connected = false;
 constexpr uint32_t SPI_TIMEOUT_MS = 1000;
 
 bool levitating_state = false;
-bool ramping = false;
 
 float desired_levitation_distance = 0.0f;
 float desired_current = 0.0f;
@@ -69,6 +68,25 @@ float local_airgap_2 = 0.0f;
 float local_airgap_3 = 0.0f;
 float local_airgap_4 = 0.0f;
 
+float Fe[3];
+float Fa[4];
+float Ef[3];
+float P[3];
+float R[3];
+float Zz[3];
+float Fe_L[3];
+
+float desired_voltage_1;
+float desired_voltage_2;
+float desired_voltage_3;
+float desired_voltage_4;
+
+float target_distance;
+
+float A[8];
+float Ak[4];
+float Bk[3];
+
 inline void reset_slave() {
     for (int i = 0; i < 5; i++) {
         LCU_Master::master_fault->turn_off();
@@ -106,8 +124,7 @@ inline void start() {
 #endif
     OrderPackets::Set_Fixed_VBAT_init(fixed_vbat);
     OrderPackets::Unset_Fixed_VBAT_init();
-    OrderPackets::Set_Control_Params_init();
-    OrderPackets::Reset_Master_init();
+    OrderPackets::Enable_All_Buffers_init();
     OrderPackets::Reset_Slave_init();
     OrderPackets::Reset_All_init();
     OrderPackets::All_Current_Control_and_enable_buffers_init(desired_current);
@@ -129,7 +146,22 @@ inline void start() {
         LCU_Master::operational_state_machine_state,
         slave_state
     );
-    DataPackets::General_State_init(levitation_distance, desired_current_1, desired_current_2, desired_current_3, desired_current_4, state_0, state_1, state_2, state_3, state_4, local_airgap_1, local_airgap_2, local_airgap_3, local_airgap_4);
+    DataPackets::General_State_init(target_distance,
+                                    desired_current_1, desired_current_2, desired_current_3, desired_current_4,
+                                    state_0, state_1, state_2, state_3, state_4,
+                                    local_airgap_1, local_airgap_2, local_airgap_3, local_airgap_4,
+                                    Fe[0], Fe[1], Fe[2],
+                                    Fa[0], Fa[1], Fa[2], Fa[3],
+                                    Ef[0], Ef[1], Ef[2],
+                                    P[0], P[1], P[2],
+                                    R[0], R[1], R[2],
+                                    Zz[0], Zz[1], Zz[2],
+                                    Fe_L[0], Fe_L[1], Fe_L[2],
+                                    desired_voltage_1, desired_voltage_2, desired_voltage_3, desired_voltage_4,
+                                    A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7],
+                                    Ak[0], Ak[1], Ak[2], Ak[3],
+                                    Bk[0], Bk[1], Bk[2]
+                                    );
 
     DataPackets::start();
     OrderPackets::start();
@@ -158,33 +190,16 @@ inline void clear_flags() {
     OrderPackets::Disable_Buffer_flag = false;
     OrderPackets::Set_Fixed_VBAT_flag = false;
     OrderPackets::Unset_Fixed_VBAT_flag = false;
-    OrderPackets::Set_Control_Params_flag = false;
+    OrderPackets::Enable_All_Buffers_flag = false;
     OrderPackets::Reset_Slave_flag = false;
-    OrderPackets::Reset_Master_flag = false;
     OrderPackets::Reset_All_flag = false;
     OrderPackets::All_Current_Control_and_enable_buffers_flag = false;
 }
-
-uint32_t last_tick = 0;
 
 inline void update() {
 #ifdef STLIB_ETH
     g_eth->update();
 #endif
-
-    if (ramping) {
-        float direction = (communications.command_packet.levitate.desired_distance < desired_levitation_distance) ? 1.0f : -1.0f;
-        auto tick = Scheduler::get_global_tick();
-
-        auto new_desired_distance = communications.command_packet.levitate.desired_distance + direction * 10.0f/1000.0f * (tick - last_tick) / 1'000'000.0f; // Ramp at 10 mm/s, convert to m and account for scheduler tick in us
-        if ((new_desired_distance >= desired_levitation_distance/1000.0f && direction > 0.0f) || (new_desired_distance <= desired_levitation_distance/1000.0f && direction < 0.0f)) {
-            communications.command_packet.levitate.desired_distance = desired_levitation_distance/1000.0f;
-            ramping = false;
-        } else {
-            communications.command_packet.levitate.desired_distance = new_desired_distance;
-        }
-        last_tick = tick;
-    }
 
     if (OrderPackets::All_Current_Control_and_enable_buffers_flag) {
         communications.command_packet.flags =
@@ -201,15 +216,21 @@ inline void update() {
     }
 
     if (OrderPackets::Stop_All_flag) {
+        LCU_Master::lpu_array->disable_all();
         communications.command_packet.flags = CommandFlags::NONE;
         levitating_state = false;
-        ramping = false;
+        communications.command_packet.levitate.ramping = false;
+        communications.command_packet.current_control.desired_current = 0.0f;
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask = 0;
+        communications.command_packet.levitate.desired_distance = 0.0f;
+        communications.command_packet.current_control.lpu_id_bitmask = 0;
     }
 
     if (OrderPackets::Levitate_flag) {
         communications.command_packet.flags =
             communications.command_packet.flags | CommandFlags::LEVITATE;
-        communications.command_packet.levitate.desired_distance = desired_levitation_distance / 1000.0f; // Convert mm to m
+        communications.command_packet.levitate.desired_distance = desired_levitation_distance;
+        communications.command_packet.levitate.ramping = false;
         levitating_state = true;
     }
 
@@ -220,26 +241,25 @@ inline void update() {
     }
 
     if (OrderPackets::Set_Desired_Distance_flag) {
-        communications.command_packet.levitate.desired_distance = desired_levitation_distance / 1000.0f; // Convert mm to m
+        communications.command_packet.levitate.desired_distance = desired_levitation_distance;
+        communications.command_packet.levitate.ramping = false;
     }
 
     if (OrderPackets::Levitate_Ramp_flag) {
         communications.command_packet.flags =
             communications.command_packet.flags | CommandFlags::LEVITATE;
-        communications.command_packet.levitate.desired_distance = (airgap_measurements[0] + airgap_measurements[1] + airgap_measurements[2] + airgap_measurements[3]) / 4.0f / 1000.0f; // Start ramp from average of first 4 airgap sensors, convert mm to m
+        communications.command_packet.levitate.desired_distance = desired_levitation_distance;
         levitating_state = true;
-        ramping = true;
-        last_tick = Scheduler::get_global_tick();
+        communications.command_packet.levitate.ramping = false;
     }
 
     if (OrderPackets::Stop_Ramp_flag) {
-        ramping = false;
+        communications.command_packet.levitate.ramping = false;
     }
 
     if (OrderPackets::Set_Desired_Distance_Ramp_flag) {
-        communications.command_packet.levitate.desired_distance = (airgap_measurements[0] + airgap_measurements[1] + airgap_measurements[2] + airgap_measurements[3]) / 4.0f / 1000.0f; // Start ramp from average of first 4 airgap sensors, convert mm to m
-        ramping = true;
-        last_tick = Scheduler::get_global_tick();
+        communications.command_packet.levitate.desired_distance = desired_levitation_distance;
+        communications.command_packet.levitate.ramping = true;
     }
 
     if (OrderPackets::Current_Control_flag) {
@@ -250,6 +270,8 @@ inline void update() {
 #elif defined(USE_5_DOF)
         if (current_control_id > 0 && current_control_id <= 10) {
             communications.command_packet.current_control.lpu_id_bitmask = (1 << (current_control_id - 1));
+            communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= (1 << (current_control_id - 1)/2);
+            LCU_Master::lpu_array->enable_pair((current_control_id - 1)/2);
         }
 #endif
         communications.command_packet.current_control.desired_current = desired_current;
@@ -280,7 +302,7 @@ inline void update() {
             case 9: LCU_Master::lpu_array->get_lpu<8>().fixed_duty_cycle = pwm_duty_cycle; 
                     LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = true; break;
             case 10: LCU_Master::lpu_array->get_lpu<9>().fixed_duty_cycle = pwm_duty_cycle; 
-                        LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = true; break;
+                    LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = true; break;
         }
 #endif
     }
@@ -373,12 +395,11 @@ inline void update() {
 #endif
     }
 
-    if (OrderPackets::Set_Control_Params_flag) {
-        // TODO
-    }
-
-    if (OrderPackets::Reset_Master_flag) { // Should remove
-        HAL_NVIC_SystemReset();
+    if (OrderPackets::Enable_All_Buffers_flag) {
+        communications.command_packet.flags =
+            communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask = 0b11111; // Force enable buffers for all 10 LPUs
+        LCU_Master::lpu_array->enable_all();
     }
 
     if (OrderPackets::Reset_Slave_flag) {
@@ -452,7 +473,7 @@ inline void update() {
             airgap_measurements[6] = LCU_Master::airgap_array->get_airgap<6>().airgap_v; // Convert to mm
             airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v; // Convert to mm
 #endif
-            levitation_distance = communications.command_packet.levitate.desired_distance * 1000.0f; // Convert to mm
+            target_distance = communications.status_packet.target_distance;
             desired_current_1 = communications.status_packet.desired_current1;
             desired_current_2 = communications.status_packet.desired_current2;
             desired_current_3 = communications.status_packet.desired_current3;
@@ -469,6 +490,48 @@ inline void update() {
             local_airgap_2 = communications.status_packet.airgap_local_2;
             local_airgap_3 = communications.status_packet.airgap_local_3;
             local_airgap_4 = communications.status_packet.airgap_local_4;
+
+            Fe[0] = communications.status_packet.Fe[0];
+            Fe[1] = communications.status_packet.Fe[1];
+            Fe[2] = communications.status_packet.Fe[2];
+            Fa[0] = communications.status_packet.Fa[0];
+            Fa[1] = communications.status_packet.Fa[1];
+            Fa[2] = communications.status_packet.Fa[2];
+            Fa[3] = communications.status_packet.Fa[3];
+            Ef[0] = communications.status_packet.Ef[0];
+            Ef[1] = communications.status_packet.Ef[1];
+            Ef[2] = communications.status_packet.Ef[2];
+            P[0] = communications.status_packet.P[0];
+            P[1] = communications.status_packet.P[1];
+            P[2] = communications.status_packet.P[2];
+            R[0] = communications.status_packet.R[0];
+            R[1] = communications.status_packet.R[1];
+            R[2] = communications.status_packet.R[2];
+            Zz[0] = communications.status_packet.Zz[0];
+            Zz[1] = communications.status_packet.Zz[1];
+            Zz[2] = communications.status_packet.Zz[2];
+            Fe_L[0] = communications.status_packet.Fe_L[0];
+            Fe_L[1] = communications.status_packet.Fe_L[1];
+            Fe_L[2] = communications.status_packet.Fe_L[2];
+            desired_voltage_1 = communications.status_packet.desired_voltage_1;
+            desired_voltage_2 = communications.status_packet.desired_voltage_2;
+            desired_voltage_3 = communications.status_packet.desired_voltage_3;
+            desired_voltage_4 = communications.status_packet.desired_voltage_4;
+            A[0] = communications.status_packet.A[0];
+            A[1] = communications.status_packet.A[1];
+            A[2] = communications.status_packet.A[2];
+            A[3] = communications.status_packet.A[3];
+            A[4] = communications.status_packet.A[4];
+            A[5] = communications.status_packet.A[5];
+            A[6] = communications.status_packet.A[6];
+            A[7] = communications.status_packet.A[7];
+            Ak[0] = communications.status_packet.Ak[0];
+            Ak[1] = communications.status_packet.Ak[1];
+            Ak[2] = communications.status_packet.Ak[2];
+            Ak[3] = communications.status_packet.Ak[3];
+            Bk[0] = communications.status_packet.Bk[0];
+            Bk[1] = communications.status_packet.Bk[1];
+            Bk[2] = communications.status_packet.Bk[2];
         }
 
         operation_flag = false;
