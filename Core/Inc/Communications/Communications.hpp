@@ -131,37 +131,142 @@ inline void start() {
 
     // Initialize Data Packets
 #ifdef USE_1_DOF
-    DataPackets::LPU_PWM_duties_init(curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle, curr_pwm_duty_cycle);
-    DataPackets::LPU_coil_currents_init(shunt, shunt, shunt, shunt, shunt, shunt, shunt, shunt, shunt, shunt);
+    DataPackets::LPU_PWM_duties_init(
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle,
+        curr_pwm_duty_cycle
+    );
+    DataPackets::LPU_coil_currents_init(
+        shunt,
+        shunt,
+        shunt,
+        shunt,
+        shunt,
+        shunt,
+        shunt,
+        shunt,
+        shunt,
+        shunt
+    );
     DataPackets::LPU_VBATs_init(vbat, vbat, vbat, vbat, vbat, vbat, vbat, vbat, vbat, vbat);
     DataPackets::Airgaps_init(airgap, airgap, airgap, airgap, airgap, airgap, airgap, airgap);
 #elif defined(USE_5_DOF)
-    DataPackets::LPU_PWM_duties_init(lpu_pwm_duty[0], lpu_pwm_duty[1], lpu_pwm_duty[2], lpu_pwm_duty[3], lpu_pwm_duty[4], lpu_pwm_duty[5], lpu_pwm_duty[6], lpu_pwm_duty[7], lpu_pwm_duty[8], lpu_pwm_duty[9]);
-    DataPackets::LPU_coil_currents_init(lpu_shunt[0], lpu_shunt[1], lpu_shunt[2], lpu_shunt[3], lpu_shunt[4], lpu_shunt[5], lpu_shunt[6], lpu_shunt[7], lpu_shunt[8], lpu_shunt[9]);
-    DataPackets::LPU_VBATs_init(lpu_vbat[0], lpu_vbat[1], lpu_vbat[2], lpu_vbat[3], lpu_vbat[4], lpu_vbat[5], lpu_vbat[6], lpu_vbat[7], lpu_vbat[8], lpu_vbat[9]);
-    DataPackets::Airgaps_init(airgap_measurements[0], airgap_measurements[1], airgap_measurements[2], airgap_measurements[3], airgap_measurements[4], airgap_measurements[5], airgap_measurements[6], airgap_measurements[7]);
+    DataPackets::LPU_PWM_duties_init(
+        lpu_pwm_duty[0],
+        lpu_pwm_duty[1],
+        lpu_pwm_duty[2],
+        lpu_pwm_duty[3],
+        lpu_pwm_duty[4],
+        lpu_pwm_duty[5],
+        lpu_pwm_duty[6],
+        lpu_pwm_duty[7],
+        lpu_pwm_duty[8],
+        lpu_pwm_duty[9]
+    );
+    DataPackets::LPU_coil_currents_init(
+        lpu_shunt[0],
+        lpu_shunt[1],
+        lpu_shunt[2],
+        lpu_shunt[3],
+        lpu_shunt[4],
+        lpu_shunt[5],
+        lpu_shunt[6],
+        lpu_shunt[7],
+        lpu_shunt[8],
+        lpu_shunt[9]
+    );
+    DataPackets::LPU_VBATs_init(
+        lpu_vbat[0],
+        lpu_vbat[1],
+        lpu_vbat[2],
+        lpu_vbat[3],
+        lpu_vbat[4],
+        lpu_vbat[5],
+        lpu_vbat[6],
+        lpu_vbat[7],
+        lpu_vbat[8],
+        lpu_vbat[9]
+    );
+    DataPackets::Airgaps_init(
+        airgap_measurements[0],
+        airgap_measurements[1],
+        airgap_measurements[2],
+        airgap_measurements[3],
+        airgap_measurements[4],
+        airgap_measurements[5],
+        airgap_measurements[6],
+        airgap_measurements[7]
+    );
 #endif
     DataPackets::State_Machine_init(
         LCU_Master::general_state_machine_state,
         LCU_Master::operational_state_machine_state,
         slave_state
     );
-    DataPackets::General_State_init(target_distance,
-                                    desired_current_1, desired_current_2, desired_current_3, desired_current_4,
-                                    state_0, state_1, state_2, state_3, state_4,
-                                    local_airgap_1, local_airgap_2, local_airgap_3, local_airgap_4,
-                                    Fe[0], Fe[1], Fe[2],
-                                    Fa[0], Fa[1], Fa[2], Fa[3],
-                                    Ef[0], Ef[1], Ef[2],
-                                    P[0], P[1], P[2],
-                                    R[0], R[1], R[2],
-                                    Zz[0], Zz[1], Zz[2],
-                                    Fe_L[0], Fe_L[1], Fe_L[2],
-                                    desired_voltage_1, desired_voltage_2, desired_voltage_3, desired_voltage_4,
-                                    A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7],
-                                    Ak[0], Ak[1], Ak[2], Ak[3],
-                                    Bk[0], Bk[1], Bk[2]
-                                    );
+    DataPackets::General_State_init(
+        target_distance,
+        desired_current_1,
+        desired_current_2,
+        desired_current_3,
+        desired_current_4,
+        state_0,
+        state_1,
+        state_2,
+        state_3,
+        state_4,
+        local_airgap_1,
+        local_airgap_2,
+        local_airgap_3,
+        local_airgap_4,
+        Fe[0],
+        Fe[1],
+        Fe[2],
+        Fa[0],
+        Fa[1],
+        Fa[2],
+        Fa[3],
+        Ef[0],
+        Ef[1],
+        Ef[2],
+        P[0],
+        P[1],
+        P[2],
+        R[0],
+        R[1],
+        R[2],
+        Zz[0],
+        Zz[1],
+        Zz[2],
+        Fe_L[0],
+        Fe_L[1],
+        Fe_L[2],
+        desired_voltage_1,
+        desired_voltage_2,
+        desired_voltage_3,
+        desired_voltage_4,
+        A[0],
+        A[1],
+        A[2],
+        A[3],
+        A[4],
+        A[5],
+        A[6],
+        A[7],
+        Ak[0],
+        Ak[1],
+        Ak[2],
+        Ak[3],
+        Bk[0],
+        Bk[1],
+        Bk[2]
+    );
 
     DataPackets::start();
     OrderPackets::start();
@@ -169,7 +274,8 @@ inline void start() {
 
 inline bool is_connected() {
 #ifdef STLIB_ETH
-    return g_eth->is_connected() && OrderPackets::control_station_tcp->is_connected() && spi_connected;
+    return g_eth->is_connected() && OrderPackets::control_station_tcp->is_connected() &&
+           spi_connected;
 #else
     return spi_connected;
 #endif
@@ -202,14 +308,18 @@ inline void update() {
 #endif
 
     if (OrderPackets::All_Current_Control_and_enable_buffers_flag) {
-        communications.command_packet.flags =
-            communications.command_packet.flags | CommandFlags::CURRENT_CONTROL | CommandFlags::ENABLE_LPU_BUFFER;
+        communications.command_packet.flags = communications.command_packet.flags |
+                                              CommandFlags::CURRENT_CONTROL |
+                                              CommandFlags::ENABLE_LPU_BUFFER;
 #ifdef USE_1_DOF
         communications.command_packet.current_control.lpu_id_bitmask = 0x01;
-        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b00001; // Force enable buffer for LPU 1
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
+            0b00001; // Force enable buffer for LPU 1
 #elif defined(USE_5_DOF)
-        communications.command_packet.current_control.lpu_id_bitmask = 0b1111111111; // Enable all 10 LPUs
-        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= 0b11111; // Force enable buffers for all 10 LPUs
+        communications.command_packet.current_control.lpu_id_bitmask =
+            0b1111111111; // Enable all 10 LPUs
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
+            0b11111; // Force enable buffers for all 10 LPUs
 #endif
         LCU_Master::lpu_array->enable_all();
         communications.command_packet.current_control.desired_current = desired_current;
@@ -269,9 +379,11 @@ inline void update() {
         communications.command_packet.current_control.lpu_id_bitmask = 0x01;
 #elif defined(USE_5_DOF)
         if (current_control_id > 0 && current_control_id <= 10) {
-            communications.command_packet.current_control.lpu_id_bitmask = (1 << (current_control_id - 1));
-            communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= (1 << (current_control_id - 1)/2);
-            LCU_Master::lpu_array->enable_pair((current_control_id - 1)/2);
+            communications.command_packet.current_control.lpu_id_bitmask =
+                (1 << (current_control_id - 1));
+            communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
+                (1 << (current_control_id - 1) / 2);
+            LCU_Master::lpu_array->enable_pair((current_control_id - 1) / 2);
         }
 #endif
         communications.command_packet.current_control.desired_current = desired_current;
@@ -282,27 +394,47 @@ inline void update() {
         LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = pwm_duty_cycle;
         LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = true;
 #elif defined(USE_5_DOF)
-        switch(start_pwm_id) {
-            case 1: LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = true; break;
-            case 2: LCU_Master::lpu_array->get_lpu<1>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<1>().is_fixed_duty_cycle = true; break;
-            case 3: LCU_Master::lpu_array->get_lpu<2>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<2>().is_fixed_duty_cycle = true; break;
-            case 4: LCU_Master::lpu_array->get_lpu<3>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<3>().is_fixed_duty_cycle = true; break;
-            case 5: LCU_Master::lpu_array->get_lpu<4>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<4>().is_fixed_duty_cycle = true; break;
-            case 6: LCU_Master::lpu_array->get_lpu<5>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<5>().is_fixed_duty_cycle = true; break;
-            case 7: LCU_Master::lpu_array->get_lpu<6>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<6>().is_fixed_duty_cycle = true; break;
-            case 8: LCU_Master::lpu_array->get_lpu<7>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<7>().is_fixed_duty_cycle = true; break;
-            case 9: LCU_Master::lpu_array->get_lpu<8>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = true; break;
-            case 10: LCU_Master::lpu_array->get_lpu<9>().fixed_duty_cycle = pwm_duty_cycle; 
-                    LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = true; break;
+        switch (start_pwm_id) {
+        case 1:
+            LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = true;
+            break;
+        case 2:
+            LCU_Master::lpu_array->get_lpu<1>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<1>().is_fixed_duty_cycle = true;
+            break;
+        case 3:
+            LCU_Master::lpu_array->get_lpu<2>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<2>().is_fixed_duty_cycle = true;
+            break;
+        case 4:
+            LCU_Master::lpu_array->get_lpu<3>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<3>().is_fixed_duty_cycle = true;
+            break;
+        case 5:
+            LCU_Master::lpu_array->get_lpu<4>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<4>().is_fixed_duty_cycle = true;
+            break;
+        case 6:
+            LCU_Master::lpu_array->get_lpu<5>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<5>().is_fixed_duty_cycle = true;
+            break;
+        case 7:
+            LCU_Master::lpu_array->get_lpu<6>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<6>().is_fixed_duty_cycle = true;
+            break;
+        case 8:
+            LCU_Master::lpu_array->get_lpu<7>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<7>().is_fixed_duty_cycle = true;
+            break;
+        case 9:
+            LCU_Master::lpu_array->get_lpu<8>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = true;
+            break;
+        case 10:
+            LCU_Master::lpu_array->get_lpu<9>().fixed_duty_cycle = pwm_duty_cycle;
+            LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = true;
+            break;
         }
 #endif
     }
@@ -311,17 +443,47 @@ inline void update() {
 #ifdef USE_1_DOF
         LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false;
 #elif defined(USE_5_DOF)
-        switch(stop_pwm_id) {
-            case 1: LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = 0; break;
-            case 2: LCU_Master::lpu_array->get_lpu<1>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<1>().fixed_duty_cycle = 0; break;
-            case 3: LCU_Master::lpu_array->get_lpu<2>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<2>().fixed_duty_cycle = 0; break;
-            case 4: LCU_Master::lpu_array->get_lpu<3>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<3>().fixed_duty_cycle = 0; break;
-            case 5: LCU_Master::lpu_array->get_lpu<4>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<4>().fixed_duty_cycle = 0; break;
-            case 6: LCU_Master::lpu_array->get_lpu<5>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<5>().fixed_duty_cycle = 0; break;
-            case 7: LCU_Master::lpu_array->get_lpu<6>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<6>().fixed_duty_cycle = 0; break;
-            case 8: LCU_Master::lpu_array->get_lpu<7>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<7>().fixed_duty_cycle = 0; break;
-            case 9: LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<8>().fixed_duty_cycle = 0; break;
-            case 10: LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = false; LCU_Master::lpu_array->get_lpu<9>().fixed_duty_cycle = 0; break;
+        switch (stop_pwm_id) {
+        case 1:
+            LCU_Master::lpu_array->get_lpu<0>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<0>().fixed_duty_cycle = 0;
+            break;
+        case 2:
+            LCU_Master::lpu_array->get_lpu<1>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<1>().fixed_duty_cycle = 0;
+            break;
+        case 3:
+            LCU_Master::lpu_array->get_lpu<2>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<2>().fixed_duty_cycle = 0;
+            break;
+        case 4:
+            LCU_Master::lpu_array->get_lpu<3>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<3>().fixed_duty_cycle = 0;
+            break;
+        case 5:
+            LCU_Master::lpu_array->get_lpu<4>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<4>().fixed_duty_cycle = 0;
+            break;
+        case 6:
+            LCU_Master::lpu_array->get_lpu<5>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<5>().fixed_duty_cycle = 0;
+            break;
+        case 7:
+            LCU_Master::lpu_array->get_lpu<6>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<6>().fixed_duty_cycle = 0;
+            break;
+        case 8:
+            LCU_Master::lpu_array->get_lpu<7>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<7>().fixed_duty_cycle = 0;
+            break;
+        case 9:
+            LCU_Master::lpu_array->get_lpu<8>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<8>().fixed_duty_cycle = 0;
+            break;
+        case 10:
+            LCU_Master::lpu_array->get_lpu<9>().is_fixed_duty_cycle = false;
+            LCU_Master::lpu_array->get_lpu<9>().fixed_duty_cycle = 0;
+            break;
         }
 #endif
     }
@@ -331,8 +493,7 @@ inline void update() {
             communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
 #ifdef USE_1_DOF
         LCU_Master::lpu_array->enable_pair(0); // Convert to 0-based index
-        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |=
-            (1 << 0);
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask |= (1 << 0);
 #elif defined(USE_5_DOF)
         LCU_Master::lpu_array->enable_pair(enable_buffer_id - 1); // Convert to 0-based index
         if (enable_buffer_id > 0 && enable_buffer_id <= 5) {
@@ -345,8 +506,7 @@ inline void update() {
     if (OrderPackets::Disable_Buffer_flag) {
 #ifdef USE_1_DOF
         LCU_Master::lpu_array->disable_pair(0); // Convert to 0-based index
-        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &=
-            ~(1 << 0);
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask &= ~(1 << 0);
 #elif defined(USE_5_DOF)
         LCU_Master::lpu_array->disable_pair(disable_buffer_id - 1); // Convert to 0-based index
         if (disable_buffer_id > 0 && disable_buffer_id <= 5) {
@@ -365,16 +525,26 @@ inline void update() {
         LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = true;
         LCU_Master::lpu_array->get_lpu<0>().fixed_vbat = fixed_vbat;
 #elif defined(USE_5_DOF)
-        LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<0>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<1>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<1>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<2>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<2>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<3>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<3>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<4>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<4>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<5>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<5>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<6>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<6>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<7>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<7>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<8>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<8>().fixed_vbat = fixed_vbat;
-        LCU_Master::lpu_array->get_lpu<9>().is_fixed_vbat = true; LCU_Master::lpu_array->get_lpu<9>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<0>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<0>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<1>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<1>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<2>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<2>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<3>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<3>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<4>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<4>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<5>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<5>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<6>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<6>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<7>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<7>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<8>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<8>().fixed_vbat = fixed_vbat;
+        LCU_Master::lpu_array->get_lpu<9>().is_fixed_vbat = true;
+        LCU_Master::lpu_array->get_lpu<9>().fixed_vbat = fixed_vbat;
 #endif
     }
 
@@ -398,7 +568,8 @@ inline void update() {
     if (OrderPackets::Enable_All_Buffers_flag) {
         communications.command_packet.flags =
             communications.command_packet.flags | CommandFlags::ENABLE_LPU_BUFFER;
-        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask = 0b11111; // Force enable buffers for all 10 LPUs
+        communications.command_packet.force_enable_lpu_buffer.lpu_buffer_id_bitmask =
+            0b11111; // Force enable buffers for all 10 LPUs
         LCU_Master::lpu_array->enable_all();
     }
 
@@ -414,7 +585,7 @@ inline void update() {
 
     // SPI Communication Logic
     if (!operation_flag) {
-        
+
         // // SPI Timeout Logic
         // if (spi_connected && HAL_GetTick() - last_spi_packet_ms > SPI_TIMEOUT_MS) {
         //     spi_connected = false;
@@ -454,24 +625,52 @@ inline void update() {
             airgap = LCU_Master::airgap_array->get_airgap<0>().airgap_v; // Convert to mm
             curr_pwm_duty_cycle = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
 #elif defined(USE_5_DOF)
-            lpu_vbat[0] = LCU_Master::lpu_array->get_lpu<0>().vbat_v; lpu_shunt[0] = LCU_Master::lpu_array->get_lpu<0>().shunt_v; lpu_pwm_duty[0] = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
-            lpu_vbat[1] = LCU_Master::lpu_array->get_lpu<1>().vbat_v; lpu_shunt[1] = LCU_Master::lpu_array->get_lpu<1>().shunt_v; lpu_pwm_duty[1] = LCU_Master::lpu_array->get_lpu<1>().duty_cycle;
-            lpu_vbat[2] = LCU_Master::lpu_array->get_lpu<2>().vbat_v; lpu_shunt[2] = LCU_Master::lpu_array->get_lpu<2>().shunt_v; lpu_pwm_duty[2] = LCU_Master::lpu_array->get_lpu<2>().duty_cycle;
-            lpu_vbat[3] = LCU_Master::lpu_array->get_lpu<3>().vbat_v; lpu_shunt[3] = LCU_Master::lpu_array->get_lpu<3>().shunt_v; lpu_pwm_duty[3] = LCU_Master::lpu_array->get_lpu<3>().duty_cycle;
-            lpu_vbat[4] = LCU_Master::lpu_array->get_lpu<4>().vbat_v; lpu_shunt[4] = LCU_Master::lpu_array->get_lpu<4>().shunt_v; lpu_pwm_duty[4] = LCU_Master::lpu_array->get_lpu<4>().duty_cycle;
-            lpu_vbat[5] = LCU_Master::lpu_array->get_lpu<5>().vbat_v; lpu_shunt[5] = LCU_Master::lpu_array->get_lpu<5>().shunt_v; lpu_pwm_duty[5] = LCU_Master::lpu_array->get_lpu<5>().duty_cycle;
-            lpu_vbat[6] = LCU_Master::lpu_array->get_lpu<6>().vbat_v; lpu_shunt[6] = LCU_Master::lpu_array->get_lpu<6>().shunt_v; lpu_pwm_duty[6] = LCU_Master::lpu_array->get_lpu<6>().duty_cycle;
-            lpu_vbat[7] = LCU_Master::lpu_array->get_lpu<7>().vbat_v; lpu_shunt[7] = LCU_Master::lpu_array->get_lpu<7>().shunt_v; lpu_pwm_duty[7] = LCU_Master::lpu_array->get_lpu<7>().duty_cycle;
-            lpu_vbat[8] = LCU_Master::lpu_array->get_lpu<8>().vbat_v; lpu_shunt[8] = LCU_Master::lpu_array->get_lpu<8>().shunt_v; lpu_pwm_duty[8] = LCU_Master::lpu_array->get_lpu<8>().duty_cycle;
-            lpu_vbat[9] = LCU_Master::lpu_array->get_lpu<9>().vbat_v; lpu_shunt[9] = LCU_Master::lpu_array->get_lpu<9>().shunt_v; lpu_pwm_duty[9] = LCU_Master::lpu_array->get_lpu<9>().duty_cycle;
-            airgap_measurements[0] = LCU_Master::airgap_array->get_airgap<0>().airgap_v; // Convert to mm
-            airgap_measurements[1] = LCU_Master::airgap_array->get_airgap<1>().airgap_v; // Convert to mm
-            airgap_measurements[2] = LCU_Master::airgap_array->get_airgap<2>().airgap_v; // Convert to mm
-            airgap_measurements[3] = LCU_Master::airgap_array->get_airgap<3>().airgap_v; // Convert to mm
-            airgap_measurements[4] = LCU_Master::airgap_array->get_airgap<4>().airgap_v; // Convert to mm
-            airgap_measurements[5] = LCU_Master::airgap_array->get_airgap<5>().airgap_v; // Convert to mm
-            airgap_measurements[6] = LCU_Master::airgap_array->get_airgap<6>().airgap_v; // Convert to mm
-            airgap_measurements[7] = LCU_Master::airgap_array->get_airgap<7>().airgap_v; // Convert to mm
+            lpu_vbat[0] = LCU_Master::lpu_array->get_lpu<0>().vbat_v;
+            lpu_shunt[0] = LCU_Master::lpu_array->get_lpu<0>().shunt_v;
+            lpu_pwm_duty[0] = LCU_Master::lpu_array->get_lpu<0>().duty_cycle;
+            lpu_vbat[1] = LCU_Master::lpu_array->get_lpu<1>().vbat_v;
+            lpu_shunt[1] = LCU_Master::lpu_array->get_lpu<1>().shunt_v;
+            lpu_pwm_duty[1] = LCU_Master::lpu_array->get_lpu<1>().duty_cycle;
+            lpu_vbat[2] = LCU_Master::lpu_array->get_lpu<2>().vbat_v;
+            lpu_shunt[2] = LCU_Master::lpu_array->get_lpu<2>().shunt_v;
+            lpu_pwm_duty[2] = LCU_Master::lpu_array->get_lpu<2>().duty_cycle;
+            lpu_vbat[3] = LCU_Master::lpu_array->get_lpu<3>().vbat_v;
+            lpu_shunt[3] = LCU_Master::lpu_array->get_lpu<3>().shunt_v;
+            lpu_pwm_duty[3] = LCU_Master::lpu_array->get_lpu<3>().duty_cycle;
+            lpu_vbat[4] = LCU_Master::lpu_array->get_lpu<4>().vbat_v;
+            lpu_shunt[4] = LCU_Master::lpu_array->get_lpu<4>().shunt_v;
+            lpu_pwm_duty[4] = LCU_Master::lpu_array->get_lpu<4>().duty_cycle;
+            lpu_vbat[5] = LCU_Master::lpu_array->get_lpu<5>().vbat_v;
+            lpu_shunt[5] = LCU_Master::lpu_array->get_lpu<5>().shunt_v;
+            lpu_pwm_duty[5] = LCU_Master::lpu_array->get_lpu<5>().duty_cycle;
+            lpu_vbat[6] = LCU_Master::lpu_array->get_lpu<6>().vbat_v;
+            lpu_shunt[6] = LCU_Master::lpu_array->get_lpu<6>().shunt_v;
+            lpu_pwm_duty[6] = LCU_Master::lpu_array->get_lpu<6>().duty_cycle;
+            lpu_vbat[7] = LCU_Master::lpu_array->get_lpu<7>().vbat_v;
+            lpu_shunt[7] = LCU_Master::lpu_array->get_lpu<7>().shunt_v;
+            lpu_pwm_duty[7] = LCU_Master::lpu_array->get_lpu<7>().duty_cycle;
+            lpu_vbat[8] = LCU_Master::lpu_array->get_lpu<8>().vbat_v;
+            lpu_shunt[8] = LCU_Master::lpu_array->get_lpu<8>().shunt_v;
+            lpu_pwm_duty[8] = LCU_Master::lpu_array->get_lpu<8>().duty_cycle;
+            lpu_vbat[9] = LCU_Master::lpu_array->get_lpu<9>().vbat_v;
+            lpu_shunt[9] = LCU_Master::lpu_array->get_lpu<9>().shunt_v;
+            lpu_pwm_duty[9] = LCU_Master::lpu_array->get_lpu<9>().duty_cycle;
+            airgap_measurements[0] =
+                LCU_Master::airgap_array->get_airgap<0>().airgap_v; // Convert to mm
+            airgap_measurements[1] =
+                LCU_Master::airgap_array->get_airgap<1>().airgap_v; // Convert to mm
+            airgap_measurements[2] =
+                LCU_Master::airgap_array->get_airgap<2>().airgap_v; // Convert to mm
+            airgap_measurements[3] =
+                LCU_Master::airgap_array->get_airgap<3>().airgap_v; // Convert to mm
+            airgap_measurements[4] =
+                LCU_Master::airgap_array->get_airgap<4>().airgap_v; // Convert to mm
+            airgap_measurements[5] =
+                LCU_Master::airgap_array->get_airgap<5>().airgap_v; // Convert to mm
+            airgap_measurements[6] =
+                LCU_Master::airgap_array->get_airgap<6>().airgap_v; // Convert to mm
+            airgap_measurements[7] =
+                LCU_Master::airgap_array->get_airgap<7>().airgap_v; // Convert to mm
 #endif
             target_distance = communications.status_packet.target_distance;
             desired_current_1 = communications.status_packet.desired_current1;
@@ -484,7 +683,9 @@ inline void update() {
             state_3 = communications.status_packet.state3;
             state_4 = communications.status_packet.state4;
 
-            slave_state = static_cast<DataPackets::slave_state_machine>(communications.status_packet.slave_state);
+            slave_state = static_cast<DataPackets::slave_state_machine>(
+                communications.status_packet.slave_state
+            );
 
             local_airgap_1 = communications.status_packet.airgap_local_1;
             local_airgap_2 = communications.status_packet.airgap_local_2;

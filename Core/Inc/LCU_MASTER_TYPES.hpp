@@ -107,29 +107,6 @@ inline constexpr auto rst4_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pino
 inline constexpr auto rst5_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pinout::rst5);
 #endif
 
-using Board = ST_LIB::Board<
-#ifdef STLIB_ETH
-    eth,
-#endif
-    led_operational_req,
-    led_fault_req,
-    master_fault_req,
-    slave_fault_req,
-    spi_req,
-    slave_ready_req,
-#ifdef USE_1_DOF
-    fault_req,
-    ready_req,
-    rst_req
-#elif defined(USE_5_DOF)
-    fault1_req, fault2_req, fault3_req, fault4_req, fault5_req,
-    fault6_req, fault7_req, fault8_req, fault9_req, fault10_req,
-    ready1_req, ready2_req, ready3_req, ready4_req, ready5_req,
-    ready6_req, ready7_req, ready8_req, ready9_req, ready10_req,
-    rst1_req, rst2_req, rst3_req, rst4_req, rst5_req
-#endif
-    >;
-
 using CommsFrame = SystemFrame<true>;
 
 inline ST_LIB::DigitalOutputDomain::Instance* led_operational = nullptr;
@@ -143,11 +120,16 @@ using LpuArrayType = LpuArray<std::tuple<LPU>, std::tuple<ST_LIB::DigitalOutputD
 using AirgapArrayType = AirgapArray<std::tuple<Airgap>>;
 
 #elif defined(USE_5_DOF)
-using LpuArrayType = LpuArray<std::tuple<LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU>,
-                            std::tuple<ST_LIB::DigitalOutputDomain::Instance, ST_LIB::DigitalOutputDomain::Instance,
-                                       ST_LIB::DigitalOutputDomain::Instance, ST_LIB::DigitalOutputDomain::Instance,
-                                       ST_LIB::DigitalOutputDomain::Instance>>;
-using AirgapArrayType = AirgapArray<std::tuple<Airgap, Airgap, Airgap, Airgap, Airgap, Airgap, Airgap, Airgap>>;
+using LpuArrayType = LpuArray<
+    std::tuple<LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU, LPU>,
+    std::tuple<
+        ST_LIB::DigitalOutputDomain::Instance,
+        ST_LIB::DigitalOutputDomain::Instance,
+        ST_LIB::DigitalOutputDomain::Instance,
+        ST_LIB::DigitalOutputDomain::Instance,
+        ST_LIB::DigitalOutputDomain::Instance>>;
+using AirgapArrayType =
+    AirgapArray<std::tuple<Airgap, Airgap, Airgap, Airgap, Airgap, Airgap, Airgap, Airgap>>;
 
 #endif
 

@@ -7,8 +7,59 @@
 #include "StateMachine/LCU_StateMachine.hpp"
 
 namespace LCU_Master {
+
+using BoardPolicy =
+    ST_LIB::FaultPolicy<LCU_StateMachine::general_state_machine, LCU_StateMachine::on_fault_enter>;
+
+using Board = ST_LIB::Board<
+    BoardPolicy,
+#ifdef STLIB_ETH
+    eth,
+#endif
+    led_operational_req,
+    led_fault_req,
+    master_fault_req,
+    slave_fault_req,
+    spi_req,
+    slave_ready_req,
+#ifdef USE_1_DOF
+    fault_req,
+    ready_req,
+    rst_req
+#elif defined(USE_5_DOF)
+    fault1_req,
+    fault2_req,
+    fault3_req,
+    fault4_req,
+    fault5_req,
+    fault6_req,
+    fault7_req,
+    fault8_req,
+    fault9_req,
+    fault10_req,
+    ready1_req,
+    ready2_req,
+    ready3_req,
+    ready4_req,
+    ready5_req,
+    ready6_req,
+    ready7_req,
+    ready8_req,
+    ready9_req,
+    ready10_req,
+    rst1_req,
+    rst2_req,
+    rst3_req,
+    rst4_req,
+    rst5_req
+#endif
+    >;
+
 inline void init() {
     Board::init();
+    Board::evaluate_protections();
+    Diagnostics::Hub::flush();
+    FaultController::check_transitions();
 
     LCU_Master::led_operational = &Board::instance_of<led_operational_req>();
     LCU_Master::led_fault = &Board::instance_of<led_fault_req>();
@@ -34,18 +85,13 @@ inline void init() {
     /* LPU */
     static LPU lpu_inst(Board::instance_of<ready_req>(), Board::instance_of<fault_req>());
 
-    static LpuArrayType lpu_array_inst(
-        std::tie(lpu_inst),
-        std::tie(Board::instance_of<rst_req>())
-    );
+    static LpuArrayType lpu_array_inst(std::tie(lpu_inst), std::tie(Board::instance_of<rst_req>()));
     LCU_Master::lpu_array = &lpu_array_inst;
 
     /* Airgap */
     static Airgap airgap_inst;
 
-    static AirgapArrayType airgap_array_inst(
-        std::tie(airgap_inst)
-    );
+    static AirgapArrayType airgap_array_inst(std::tie(airgap_inst));
     LCU_Master::airgap_array = &airgap_array_inst;
 
 #elif defined(USE_5_DOF)
@@ -63,8 +109,13 @@ inline void init() {
 
     static LpuArrayType lpu_array_inst(
         std::tie(lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10),
-        std::tie(Board::instance_of<rst1_req>(), Board::instance_of<rst2_req>(), Board::instance_of<rst3_req>(),
-                 Board::instance_of<rst4_req>(), Board::instance_of<rst5_req>())
+        std::tie(
+            Board::instance_of<rst1_req>(),
+            Board::instance_of<rst2_req>(),
+            Board::instance_of<rst3_req>(),
+            Board::instance_of<rst4_req>(),
+            Board::instance_of<rst5_req>()
+        )
     );
     LCU_Master::lpu_array = &lpu_array_inst;
 
@@ -91,9 +142,38 @@ inline void init() {
 #ifdef USE_1_DOF
     CommsFrame::init(Comms::communications, lpu_inst, Comms::communications, lpu_inst, airgap_inst);
 #elif defined(USE_5_DOF)
-    CommsFrame::init(Comms::communications, lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10,
-                      Comms::communications, lpu1, lpu2, lpu3, lpu4, lpu5, lpu6, lpu7, lpu8, lpu9, lpu10,
-                      airgap1, airgap2, airgap3, airgap4, airgap5, airgap6, airgap7, airgap8);
+    CommsFrame::init(
+        Comms::communications,
+        lpu1,
+        lpu2,
+        lpu3,
+        lpu4,
+        lpu5,
+        lpu6,
+        lpu7,
+        lpu8,
+        lpu9,
+        lpu10,
+        Comms::communications,
+        lpu1,
+        lpu2,
+        lpu3,
+        lpu4,
+        lpu5,
+        lpu6,
+        lpu7,
+        lpu8,
+        lpu9,
+        lpu10,
+        airgap1,
+        airgap2,
+        airgap3,
+        airgap4,
+        airgap5,
+        airgap6,
+        airgap7,
+        airgap8
+    );
 #endif
 
     Comms::start();

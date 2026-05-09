@@ -11,8 +11,7 @@ public:
 
 template <typename AirgapTuple> class AirgapArray;
 
-template <typename... AirgapInstances>
-class AirgapArray<std::tuple<AirgapInstances...>> {
+template <typename... AirgapInstances> class AirgapArray<std::tuple<AirgapInstances...>> {
     static constexpr size_t AirgapCount = sizeof...(AirgapInstances);
 
     using AirgapPtrTuple = std::tuple<std::remove_reference_t<AirgapInstances>*...>;

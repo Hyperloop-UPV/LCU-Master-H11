@@ -102,7 +102,8 @@ public:
             std::get<0>(reset_pins)->turn_on();
             return;
         }
-        if (lpu_index >= LpuCount) return; // Out of bounds check
+        if (lpu_index >= LpuCount)
+            return; // Out of bounds check
         size_t pin_index = lpu_index;
         apply_to_pin(pin_index, [](auto pin) { pin->turn_on(); });
     }
@@ -112,7 +113,8 @@ public:
             std::get<0>(reset_pins)->turn_off();
             return;
         }
-        if (lpu_index >= LpuCount) return; // Out of bounds check
+        if (lpu_index >= LpuCount)
+            return; // Out of bounds check
         size_t pin_index = lpu_index;
         apply_to_pin(pin_index, [](auto pin) { pin->turn_off(); });
     }
@@ -121,7 +123,11 @@ public:
 
 private:
     template <typename Func> void apply_to_pin(size_t pin_index, Func&& func) {
-        apply_to_pin_impl(pin_index, std::forward<Func>(func), std::index_sequence_for<ResetPins...>{});
+        apply_to_pin_impl(
+            pin_index,
+            std::forward<Func>(func),
+            std::index_sequence_for<ResetPins...>{}
+        );
     }
 
     template <typename Func, size_t... Is>
