@@ -60,6 +60,7 @@ using SpiComms = SpiCommunications<
     },
     +[]() { // OnTx
         // Master initiates the transfer
+        LCU_Master::slave_ready_triggered = false;
     },
     +[]() { // OnRxReceived
         // Transfer complete
@@ -347,6 +348,7 @@ void read_slave_data() {
 }
 
 void update() {
+    LCU_Master::eth.update();
     process_orders();
     clear_flags();
 
