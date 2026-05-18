@@ -6,27 +6,22 @@
 
 class Airgap : public AirgapBase {
 public:
-    Airgap() {}
+    Airgap() = default;
 };
 
 template <typename AirgapTuple> class AirgapArray;
 
-template <typename... AirgapInstances> class AirgapArray<std::tuple<AirgapInstances...>> {
-    static constexpr size_t AirgapCount = sizeof...(AirgapInstances);
-
-    using AirgapPtrTuple = std::tuple<std::remove_reference_t<AirgapInstances>*...>;
-
-    AirgapPtrTuple airgap_instances;
-
+template <typename... AirgapInstances>
+class AirgapArray<std::tuple<AirgapInstances...>>
+    : public AirgapArrayBase<std::tuple<AirgapInstances...>> {
 public:
-    AirgapArray(std::tuple<AirgapInstances&...> _instances) {
-        airgap_instances =
-            std::apply([](auto&... instance) { return std::make_tuple(&instance...); }, _instances);
-    }
+    explicit AirgapArray(std::tuple<AirgapInstances...>& instance_refs)
+        : AirgapArrayBase<std::tuple<AirgapInstances...>>(instance_refs) {}
 
-    template <size_t Index> auto& get_airgap() {
-        static_assert(Index < AirgapCount, "Index out of bounds in AirgapArray::get_airgap()");
-        return *std::get<Index>(airgap_instances);
+    std::array<float, sizeof...(AirgapInstances)> get_all_airgap() {
+        std::array<float, sizeof...(AirgapInstances)> airgaps;
+        std::apply([&](auto&... airgap) { ((airgaps[&airgap - &std::get<0>(this->airgaps)] = airgap.airgap_v), ...); }, this->airgaps);
+        return airgaps;
     }
 };
 

@@ -2,102 +2,61 @@
 #define LCU_STATE_MACHINE_HPP
 
 #include "C++Utilities/CppImports.hpp"
-#include "LCU_MASTER_TYPES.hpp"
 #include "Communications/Communications.hpp"
+#include "Communications/Packets/DataPackets.hpp"
+#include "ConfigShared.hpp"
 
-namespace LCU_StateMachine {
+namespace LCU_SM {
 
-using GeneralStates = DataPackets::general_state_machine;
-using OperationalStates = DataPackets::operational_state_machine;
+using MasterStates = DataPackets::master_state_machine;
+inline StateMachineBase slave_state_machine{};
+
+void on_fault_enter();
+void start();
+void update();
+
+// Transition guards
+bool transition_connecting_to_idle();
+bool transition_idle_to_operational();
+bool transition_operational_to_idle();
+
+// Actions
+void on_idle_enter();
+void on_idle_exit();
+void on_operational_enter();
+void on_operational_exit();
+void cyclic_update_lpus();
 
 inline uint32_t check_slave_fault_id;
 
-inline void on_fault_enter() {
-    LCU_Master::led_fault->turn_on();
-    LCU_Master::led_operational->turn_off();
-    LCU_Master::lpu_array->disable_all();
-    Scheduler::unregister_task(check_slave_fault_id);
-}
-
 inline constexpr auto connecting_state = make_state(
-    GeneralStates::Connecting,
-    Transition<GeneralStates>{GeneralStates::Operational, []() { return Comms::is_connected(); }}
+    MasterStates::Connecting,
+    Transition<MasterStates>{MasterStates::Idle, transition_connecting_to_idle}
 );
 
-inline constexpr auto operational_state = make_state(GeneralStates::Operational);
-
-inline constexpr auto nested_idle_state = make_state(
-    OperationalStates::Idle,
-    Transition<OperationalStates>{
-        OperationalStates::Levitating,
-        []() { return Comms::levitating_state; }
-    }
+inline constexpr auto idle_state = make_state(
+    MasterStates::Idle,
+    Transition<MasterStates>{MasterStates::Operational, transition_idle_to_operational}
 );
 
-inline constexpr auto nested_levitating_state = make_state(
-    OperationalStates::Levitating,
-    Transition<OperationalStates>{
-        OperationalStates::Idle,
-        []() { return !Comms::levitating_state; }
-    }
+inline constexpr auto operational_state = make_state(
+    MasterStates::Operational,
+    Transition<MasterStates>{MasterStates::Idle, transition_operational_to_idle}
 );
 
-inline constinit auto operational_state_machine = []() consteval {
-    auto sm =
-        make_state_machine(OperationalStates::Idle, nested_idle_state, nested_levitating_state);
+inline constinit auto state_machine = []() consteval {
+    auto sm = make_state_machine(MasterStates::Connecting, connecting_state, idle_state, operational_state);
     using namespace std::chrono_literals;
 
-    sm.add_enter_action([]() { LCU_Master::lpu_array->enable_all(); }, nested_levitating_state);
+    sm.add_enter_action(on_operational_enter, operational_state);
+    sm.add_exit_action(on_operational_exit, operational_state);
 
-    sm.add_exit_action([]() { LCU_Master::lpu_array->disable_all(); }, nested_levitating_state);
+    sm.add_enter_action(on_idle_enter, idle_state);
+    sm.add_exit_action(on_idle_exit, idle_state);
 
     return sm;
 }();
 
-inline constinit auto general_state_machine = []() consteval {
-    auto nested = StateMachineHelper::add_nested_machines(
-        StateMachineHelper::add_nesting(operational_state, operational_state_machine)
-    );
-    auto sm =
-        make_state_machine(GeneralStates::Connecting, nested, connecting_state, operational_state);
-    using namespace std::chrono_literals;
-
-    sm.add_enter_action([]() { LCU_Master::led_operational->turn_on(); }, operational_state);
-
-    sm.add_exit_action([]() { LCU_Master::led_operational->turn_off(); }, operational_state);
-
-    sm.add_cyclic_action([]() { LCU_Master::lpu_array->update_all(); }, 1ms, operational_state);
-
-    return sm;
-}();
-
-inline void check_slave_fault() {
-    if ( LCU_Master::slave_fault->read() == GPIO_PinState::GPIO_PIN_RESET) {
-        FAULT("Slave Fault Detected via GPIO");
-    }
-}
-
-inline void start() {
-    check_slave_fault_id = Scheduler::register_task(10000, check_slave_fault);
-}
-
-inline void update() {
-    general_state_machine.check_transitions();
-    LCU_Master::general_state_machine_state = general_state_machine.get_current_state();
-    LCU_Master::operational_state_machine_state = operational_state_machine.get_current_state();
-
-    if (general_state_machine.get_current_state() != GeneralStates::Connecting) {
-        if (!Comms::is_connected()) {
-            FAULT("SPI / Ethernet Disconnected");
-        }
-    }
-    if (LCU_Master::slave_fault_triggered) {
-        FAULT("Slave Fault Triggered");
-    }
-    if (!LCU_Master::lpu_array->is_all_ok()) {
-        FAULT("LPU Array Fault Detected");
-    }
-}
-}; // namespace LCU_StateMachine
+} // namespace LCU_SM
 
 #endif // LCU_STATE_MACHINE_HPP

@@ -10,21 +10,21 @@ public:
     LPU(ST_LIB::DigitalInputDomain::Instance& ready, ST_LIB::DigitalInputDomain::Instance& fault)
         : ready_pin(ready), fault_pin(fault) {}
 
-    bool update() {
-        return true; // Temporary bypass for testing without hardware. Replace with actual logic
-                     // below.
-        if (ready_pin.read() == GPIO_PinState::GPIO_PIN_SET)
-            ready = true;
-        else
-            ready = false;
-        if (fault_pin.read() == GPIO_PinState::GPIO_PIN_SET)
-            fault = true;
-        else
-            fault = false;
-        if (fault) {
-            return false;
+    void update() {
+        return; // Bypass
+        auto ready = (ready_pin.read() == GPIO_PinState::GPIO_PIN_SET);
+        auto fault = (fault_pin.read() == GPIO_PinState::GPIO_PIN_SET);
+
+        if (!ready) {
+            FAULT("LPU not ready");
         }
-        return true;
+        if (fault) {
+            FAULT("LPU fault detected");
+        }
+    }
+
+    void set_fixed_duty_cycle(float duty) {
+        fixed_duty_cycle = duty;
     }
 
 private:
@@ -35,112 +35,70 @@ private:
 template <typename LPUTuple, typename ResetPinTuple> class LpuArray;
 
 template <typename... LPUs, typename... ResetPins>
-class LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>> {
-    static constexpr size_t LpuCount = sizeof...(LPUs);
-    static constexpr size_t PinCount = sizeof...(ResetPins);
-
-    static_assert(
-        LpuCount == PinCount * 2 || (LpuCount == 1 && PinCount == 1),
-        "Configuration Error: Must have exactly 2 LPUs per Enable Pin or have only 1 LPU and 1 "
-        "Enable Pin (1DOF)."
-    );
-
-    using LPUPtrTuple = std::tuple<std::remove_reference_t<LPUs>*...>;
-    using PinPtrTuple = std::tuple<std::remove_reference_t<ResetPins>*...>;
-
-    LPUPtrTuple lpus;
-    PinPtrTuple reset_pins;
-
-    bool all_ok = true;
+class LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>> : public LpuArrayBase<std::tuple<LPUs...>> {
+    std::tuple<ResetPins...>& reset_pins;
 
 public:
-    LpuArray(std::tuple<LPUs&...> _lpus, std::tuple<ResetPins&...> _pins) {
-        lpus = std::apply([](auto&... lpu) { return std::make_tuple(&lpu...); }, _lpus);
-        reset_pins = std::apply([](auto&... pin) { return std::make_tuple(&pin...); }, _pins);
-    }
-
-    void reset_all() {
-        std::apply([](auto&... pin) { (pin->turn_off(), ...); }, reset_pins);
-    }
-
-    template <size_t LpuIndex> void disable_pair() {
-        if constexpr (LpuCount == 1) {
-            std::get<0>(reset_pins)->turn_off();
-            return;
-        }
-        constexpr size_t PinIndex = LpuIndex;
-        std::get<PinIndex>(reset_pins)->turn_off();
-    }
-
-    template <size_t LpuIndex> void enable_pair() {
-        if constexpr (LpuCount == 1) {
-            std::get<0>(reset_pins)->turn_on();
-            return;
-        }
-        constexpr size_t PinIndex = LpuIndex;
-        std::get<PinIndex>(reset_pins)->turn_on();
-    }
-
-    void disable_all() {
-        std::apply([](auto&... pin) { (pin->turn_off(), ...); }, reset_pins);
-    }
+    explicit LpuArray(std::tuple<LPUs...>& lpu_refs, std::tuple<ResetPins...>& reset_pin_refs)
+        : LpuArrayBase<std::tuple<LPUs...>>(lpu_refs), reset_pins(reset_pin_refs) {}
 
     void enable_all() {
-        std::apply([](auto&... pin) { (pin->turn_on(), ...); }, reset_pins);
+        std::apply([](auto&... pin) { (pin.turn_on(), ...); }, this->reset_pins);
+    }
+    void disable_all() {
+        std::apply([](auto&... pin) { (pin.turn_off(), ...); }, this->reset_pins);
     }
 
-    bool update_all() {
-        all_ok = true;
-        std::apply([&](auto&... lpu) { ((all_ok &= lpu->update()), ...); }, lpus);
-        return all_ok;
+    void update_all() {
+        std::apply([&](auto&... lpu) { ((lpu.update()), ...); }, this->lpus);
     }
 
-    template <size_t Index> auto& get_lpu() { return *std::get<Index>(lpus); }
-
-    void enable_pair(size_t lpu_index) {
-        if constexpr (LpuCount == 1) {
-            std::get<0>(reset_pins)->turn_on();
-            return;
-        }
-        if (lpu_index >= LpuCount)
-            return; // Out of bounds check
-        size_t pin_index = lpu_index;
-        apply_to_pin(pin_index, [](auto pin) { pin->turn_on(); });
+    std::array<float, sizeof...(LPUs)> get_all_vbat() {
+        std::array<float, sizeof...(LPUs)> vbats;
+        std::apply([&](auto&... lpu) { ((vbats[&lpu - &std::get<0>(this->lpus)] = lpu.vbat_v), ...); }, this->lpus);
+        return vbats;
     }
 
-    void disable_pair(size_t lpu_index) {
-        if constexpr (LpuCount == 1) {
-            std::get<0>(reset_pins)->turn_off();
-            return;
-        }
-        if (lpu_index >= LpuCount)
-            return; // Out of bounds check
-        size_t pin_index = lpu_index;
-        apply_to_pin(pin_index, [](auto pin) { pin->turn_off(); });
+    std::array<float, sizeof...(LPUs)> get_all_shunt() {
+        std::array<float, sizeof...(LPUs)> shunts;
+        std::apply([&](auto&... lpu) { ((shunts[&lpu - &std::get<0>(this->lpus)] = lpu.shunt_v), ...); }, this->lpus);
+        return shunts;
     }
 
-    bool is_all_ok() const { return all_ok; }
-
-private:
-    template <typename Func> void apply_to_pin(size_t pin_index, Func&& func) {
-        apply_to_pin_impl(
-            pin_index,
-            std::forward<Func>(func),
-            std::index_sequence_for<ResetPins...>{}
-        );
+    std::array<float, sizeof...(LPUs)> get_all_duty_cycle() {
+        std::array<float, sizeof...(LPUs)> duty_cycles;
+        std::apply([&](auto&... lpu) { ((duty_cycles[&lpu - &std::get<0>(this->lpus)] = lpu.duty_cycle), ...); }, this->lpus);
+        return duty_cycles;
     }
 
-    template <typename Func, size_t... Is>
-    void apply_to_pin_impl(size_t pin_index, Func&& func, std::index_sequence<Is...>) {
-        (void)pin_index;
-        (void)func;
-        (((Is == pin_index) && (func(std::get<Is>(reset_pins)), true)) || ...);
+    void set_fixed_vbat_all(float vbat) {
+        std::apply([&](auto&... lpu) { ((lpu.is_fixed_vbat = true, lpu.fixed_vbat = vbat), ...); }, this->lpus);
+    }
+
+    void unset_fixed_vbat_all() {
+        std::apply([&](auto&... lpu) { ((lpu.is_fixed_vbat = false, lpu.fixed_vbat = 0.0f), ...); }, this->lpus);
+    }
+
+    void set_fixed_duty_cycle_all(float duty_cycle) {
+        std::apply([&](auto&... lpu) { ((lpu.set_fixed_duty_cycle(duty_cycle)), ...); }, this->lpus);
+    }
+
+    void set_fixed_duty_cycle_to(float duty_cycle, size_t idx) {
+        auto set_at = [&](auto seq) {
+            [&]<size_t... I>(std::index_sequence<I...>) {
+                ((I == idx
+                      ? (void)(std::get<I>(this->lpus).set_fixed_duty_cycle(duty_cycle))
+                      : (void)0),
+                 ...);
+            }(seq);
+        };
+
+        set_at(std::index_sequence_for<LPUs...>{});
     }
 };
 
-// Deduction guide for LpuArray
 template <typename... LPUs, typename... ResetPins>
-LpuArray(std::tuple<LPUs&...>, std::tuple<ResetPins&...>)
+LpuArray(std::tuple<LPUs...>&, std::tuple<ResetPins...>&)
     -> LpuArray<std::tuple<LPUs...>, std::tuple<ResetPins...>>;
 
 #endif // LPU_HPP
