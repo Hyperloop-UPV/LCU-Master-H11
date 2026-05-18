@@ -68,7 +68,7 @@ file(GLOB_RECURSE SOURCE_H    ${CMAKE_SOURCE_DIR}/Core/*.h)
 file(GLOB_RECURSE SOURCE_HPP  ${CMAKE_SOURCE_DIR}/Core/*.hpp)
 
 # Determine which JSON config to use based on USE_5_DOF
-if(USE_5_DOF)
+if(USE_5_DOF OR USE_3_DOF)
   set(GENERATOR_JSON_DIR "adj_5DOF")
 else()
   set(GENERATOR_JSON_DIR "adj_1DOF")
