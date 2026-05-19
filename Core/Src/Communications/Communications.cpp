@@ -16,15 +16,15 @@ uint32_t lpu_id = 0;
 uint32_t enable_buffer_id = 0;
 uint32_t disable_buffer_id = 0;
 
-float lpu_vbat[10] = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
+float lpu_vbat[10] = {0.0f};
 float lpu_shunt[10] = {0.0f};
 float lpu_pwm_duty[10] = {0.0f};
 float airgap_measurements[8] = {0.0f};
 
 float target_distance = 0.0f;
-float desired_currents[4];
-float state[5];
-float local_airgaps[4];
+float desired_currents[4] = {0.0f};
+float state[5] = {0.0f};
+float local_airgaps[4] = {0.0f};
 
 float Fe[3] = {0.0f};
 float Fa[4] = {0.0f};
@@ -34,7 +34,7 @@ float R[3] = {0.0f};
 float Zz[3] = {0.0f};
 float Fe_L[3] = {0.0f};
 
-float desired_voltages[4];
+float desired_voltages[4] = {0.0f};
 
 float A[8] = {0.0f};
 float Ak[4] = {0.0f};
@@ -87,6 +87,7 @@ SpiComms spi_comms{};
 // ============================================
 
 void reset_slave() {
+    is_resetting_slave = true;
     for (int i = 0; i < 5; i++) {
         LCU_Master::master_fault.turn_off();
         HAL_Delay(10);
@@ -94,7 +95,7 @@ void reset_slave() {
         HAL_Delay(10);
     }
     HAL_Delay(100);
-    LCU_Master::slave_fault_triggered = false;
+    is_resetting_slave = false;
 }
 
 // (TODO) Make this depend on DOF somehow
@@ -275,12 +276,14 @@ void process_orders() {
         }
         LCU_Master::lpu_array.set_fixed_duty_cycle_to(pwm_duty_cycle, lpu_id-1);
         LCU_SM::slave_state_machine.lpu_bitmask |= 1 << (lpu_id-1);
+        LCU_SM::slave_state_machine.desired_state = SlaveState::DEBUG;
         operational_state = true;
     }
     
     if (OrderPackets::All_PWM_flag) {
         LCU_Master::lpu_array.set_fixed_duty_cycle_all(pwm_duty_cycle);
         LCU_SM::slave_state_machine.lpu_bitmask = (1U << LCUConfig::ACTIVE_LPU_COUNT) - 1; // Set bits for all active LPUs
+        LCU_SM::slave_state_machine.desired_state = SlaveState::DEBUG;
         operational_state = true;
     }
 
@@ -312,7 +315,7 @@ void read_slave_data() {
     auto vbats = LCU_Master::lpu_array.get_all_vbat();
     auto shunts = LCU_Master::lpu_array.get_all_shunt();
     auto duty_cycles = LCU_Master::lpu_array.get_all_duty_cycle();
-    for (size_t i = 0; i < 10; i++) {
+    for (size_t i = 0; i < LCUConfig::ACTIVE_LPU_COUNT; i++) {
         lpu_vbat[i] = vbats[i];
         lpu_shunt[i] = shunts[i];
         lpu_pwm_duty[i] = duty_cycles[i];
@@ -320,7 +323,7 @@ void read_slave_data() {
 
     // Airgap data synced via Frame
     auto airgaps = LCU_Master::airgap_array.get_all_airgap();
-    for (size_t i = 0; i < 8; i++) {
+    for (size_t i = 0; i < LCUConfig::ACTIVE_AIRGAP_COUNT; i++) {
         airgap_measurements[i] = airgaps[i];
     }
 
@@ -345,6 +348,14 @@ void read_slave_data() {
     slave_state = static_cast<DataPackets::slave_state_machine>(
         LCU_SM::slave_state_machine.current_state
     );
+
+    if (report.get_seq_num() != last_report_seq_num) {
+        Diagnostics::Hub::publish(const_cast<const Diagnostics::DiagnosticRecord&>(report.get_record()));
+        // if (last_report_seq_num != report.get_seq_num() + 1) {
+        //     WARNING("Report sequence number jumped unexpectedly");
+        // }
+        last_report_seq_num = report.get_seq_num();
+    }
 }
 
 void update() {

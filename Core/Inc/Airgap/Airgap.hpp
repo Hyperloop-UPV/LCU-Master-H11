@@ -18,10 +18,10 @@ public:
     explicit AirgapArray(std::tuple<AirgapInstances...>& instance_refs)
         : AirgapArrayBase<std::tuple<AirgapInstances...>>(instance_refs) {}
 
-    std::array<float, sizeof...(AirgapInstances)> get_all_airgap() {
-        std::array<float, sizeof...(AirgapInstances)> airgaps;
-        std::apply([&](auto&... airgap) { ((airgaps[&airgap - &std::get<0>(this->airgaps)] = airgap.airgap_v), ...); }, this->airgaps);
-        return airgaps;
+    auto get_all_airgap() const {
+        return [this]<size_t... Is>(std::index_sequence<Is...>) {
+            return std::array<float, sizeof...(Is)>{std::get<Is>(this->airgaps).airgap_v...};
+        }(std::make_index_sequence<sizeof...(AirgapInstances)>{});
     }
 };
 

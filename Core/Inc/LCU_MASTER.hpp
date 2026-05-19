@@ -33,8 +33,12 @@ inline constexpr auto slave_fault_req = ST_LIB::EXTIDomain::Device(
     Pinout::slave_fault,
     ST_LIB::EXTIDomain::Trigger::FALLING_EDGE,
     []() {
+        if (Communications::is_resetting_slave) {
+            // Ignore faults triggered during slave reset, as they are expected
+            return;
+        }
         slave_fault_triggered = true;
-        FAULT("Slave fault detected via EXTI");
+        if (!FaultController::is_faulted()) FAULT("Slave fault detected via EXTI");
     }
 );
 

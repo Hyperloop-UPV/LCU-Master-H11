@@ -11,8 +11,10 @@ namespace Communications {
 
 inline ReportBase report{};
 inline ControlBase control{};
+inline uint32_t last_report_seq_num = 0;
 inline bool operational_state = false;
 inline auto master_state_machine_state = DataPackets::master_state_machine::Connecting;
+inline volatile bool is_resetting_slave = false;
 
 void init();
 void update();

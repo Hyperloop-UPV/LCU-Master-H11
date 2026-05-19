@@ -65,16 +65,16 @@ constexpr auto lpu_virtual_to_connector(uint8_t virtual_idx) {
     } else if constexpr (ACTIVE_DOF == DOFConfig::DOF_3) {
         switch (virtual_idx) {
         case 0:
-            return 3;
+            return 9;
             break;
         case 1:
-            return 5;
+            return 3;
             break;
         case 2:
             return 7;
             break;
         case 3:
-            return 9;
+            return 5;
             break;
         default:
             ST_LIB::compile_error("Bad LPU virtual_idx");
@@ -98,16 +98,16 @@ constexpr auto airgap_virtual_to_connector(uint8_t virtual_idx) {
     } else if constexpr (ACTIVE_DOF == DOFConfig::DOF_3) {
         switch (virtual_idx) {
         case 0:
-            return 4;
-            break;
-        case 1:
             return 1;
             break;
+        case 1:
+            return 4;
+            break;
         case 2:
-            return 2;
+            return 3;
             break;
         case 3:
-            return 3;
+            return 2;
             break;
         default:
             ST_LIB::compile_error("Bad LPU virtual_idx");
@@ -117,7 +117,6 @@ constexpr auto airgap_virtual_to_connector(uint8_t virtual_idx) {
         return virtual_idx;
     }
 }
-
 
 } // namespace LCUConfig
 
