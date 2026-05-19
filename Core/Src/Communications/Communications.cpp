@@ -90,11 +90,11 @@ void reset_slave() {
     is_resetting_slave = true;
     for (int i = 0; i < 5; i++) {
         LCU_Master::master_fault.turn_off();
-        HAL_Delay(10);
+        HAL_Delay(1);
         LCU_Master::master_fault.turn_on();
-        HAL_Delay(10);
+        HAL_Delay(1);
     }
-    HAL_Delay(100);
+    HAL_Delay(200);
     is_resetting_slave = false;
 }
 
@@ -169,7 +169,7 @@ void init() {
 }
 
 bool is_connected() {
-    return spi_comms.is_connected() && LCU_Master::eth.is_connected();
+    return spi_comms.is_connected() && LCU_Master::eth.is_connected() && OrderPackets::control_station_tcp->is_connected();
 }
 
 void clear_flags() {

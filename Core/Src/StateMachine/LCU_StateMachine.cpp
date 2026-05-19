@@ -18,31 +18,39 @@ bool transition_idle_to_operational() {
 
 // Actions
 void on_idle_enter() {
+    LCU_Master::led_connected.turn_on();
     slave_state_machine.desired_state = SlaveState::IDLE;
 }
 
-void on_idle_exit() {
-}
-
 void on_operational_enter() {
-    LCU_Master::led_operational.turn_on();
+    LCU_Master::led_levitation.turn_on();
+    LCU_Master::led_current_control.turn_on();
+    LCU_Master::led_debug.turn_on();
     LCU_Master::lpu_array.enable_all();
 }
 
 void on_operational_exit() {
-    LCU_Master::led_operational.turn_off();
+    LCU_Master::led_levitation.turn_off();
+    LCU_Master::led_current_control.turn_off();
+    LCU_Master::led_debug.turn_off();
     LCU_Master::lpu_array.disable_all();
 }
 
 void on_fault_enter() {
-    LCU_Master::led_fault.turn_on();
-    LCU_Master::led_operational.turn_off();
     LCU_Master::lpu_array.disable_all();
+    LCU_Master::led_fault.turn_on();
+    LCU_Master::led_levitation.turn_off();
+    LCU_Master::led_current_control.turn_off();
+    LCU_Master::led_debug.turn_off();
     Scheduler::unregister_task(check_slave_fault_id);
     slave_state_machine.current_state = SlaveState::FAULT;
 }
 
 // Cyclic actions
+void cyclic_connecting_toggle_led() {
+    LCU_Master::led_connected.toggle();
+}
+
 void cyclic_update_lpus() {
     LCU_Master::lpu_array.update_all();
 }

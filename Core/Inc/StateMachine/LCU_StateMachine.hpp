@@ -22,10 +22,10 @@ bool transition_operational_to_idle();
 
 // Actions
 void on_idle_enter();
-void on_idle_exit();
 void on_operational_enter();
 void on_operational_exit();
 void cyclic_update_lpus();
+void cyclic_connecting_toggle_led();
 
 inline uint32_t check_slave_fault_id;
 
@@ -48,11 +48,12 @@ inline constinit auto state_machine = []() consteval {
     auto sm = make_state_machine(MasterStates::Connecting, connecting_state, idle_state, operational_state);
     using namespace std::chrono_literals;
 
+    sm.add_cyclic_action(cyclic_connecting_toggle_led, 500ms, connecting_state);
+
     sm.add_enter_action(on_operational_enter, operational_state);
     sm.add_exit_action(on_operational_exit, operational_state);
 
     sm.add_enter_action(on_idle_enter, idle_state);
-    sm.add_exit_action(on_idle_exit, idle_state);
 
     return sm;
 }();
