@@ -42,6 +42,8 @@ float Bk[3] = {0.0f};
 
 auto slave_state = DataPackets::slave_state_machine::SPI_Connecting;
 
+float cinema_current = 0.0f;
+
 // ============================================
 // SPI Communications
 // ============================================
@@ -119,6 +121,8 @@ void init() {
     OrderPackets::Stop_PWM_init(lpu_id);
     OrderPackets::Reset_Slave_init();
     OrderPackets::Reset_All_init();
+    OrderPackets::Cinema_init(cinema_current);
+    OrderPackets::Stop_Cinema_init();
 
     // Initialize Data Packets
     DataPackets::LPU_PWM_duties_init(
@@ -198,6 +202,8 @@ void process_orders() {
         control.input.ramping = false;
         control.input.RefCurrent = 0.0f;
         control.input.RefZ = 0.0f;
+        control.input.cinema = false;
+        control.input.cinema_current = 0.0f;
         LCU_SM::slave_state_machine.lpu_bitmask = 0;
         LCU_Master::lpu_array.set_fixed_duty_cycle_all(0.0f);
     }
@@ -306,6 +312,16 @@ void process_orders() {
 
     if (OrderPackets::Reset_All_flag) {
         HAL_NVIC_SystemReset();
+    }
+
+    if (OrderPackets::Cinema_flag) {
+        control.input.cinema = true;
+        control.input.cinema_current = cinema_current;
+    }
+
+    if (OrderPackets::Stop_Cinema_flag) {
+        control.input.cinema = false;
+        control.input.cinema_current = 0.0f;
     }
 }
 
