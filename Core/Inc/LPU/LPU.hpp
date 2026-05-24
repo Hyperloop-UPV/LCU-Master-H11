@@ -53,22 +53,22 @@ public:
         std::apply([&](auto&... lpu) { ((lpu.update()), ...); }, this->lpus);
     }
 
-    std::array<float, sizeof...(LPUs)> get_all_vbat() {
-        std::array<float, sizeof...(LPUs)> vbats;
-        std::apply([&](auto&... lpu) { ((vbats[&lpu - &std::get<0>(this->lpus)] = lpu.vbat_v), ...); }, this->lpus);
-        return vbats;
+    auto get_all_vbat() {
+        return [this]<size_t... Is>(std::index_sequence<Is...>) {
+            return std::array<float, sizeof...(Is)>{std::get<Is>(this->lpus).vbat_v...};
+        }(std::make_index_sequence<sizeof...(LPUs)>{});
     }
 
-    std::array<float, sizeof...(LPUs)> get_all_shunt() {
-        std::array<float, sizeof...(LPUs)> shunts;
-        std::apply([&](auto&... lpu) { ((shunts[&lpu - &std::get<0>(this->lpus)] = lpu.shunt_v), ...); }, this->lpus);
-        return shunts;
+    auto get_all_shunt() {
+        return [this]<size_t... Is>(std::index_sequence<Is...>) {
+            return std::array<float, sizeof...(Is)>{std::get<Is>(this->lpus).shunt_v...};
+        }(std::make_index_sequence<sizeof...(LPUs)>{});
     }
 
-    std::array<float, sizeof...(LPUs)> get_all_duty_cycle() {
-        std::array<float, sizeof...(LPUs)> duty_cycles;
-        std::apply([&](auto&... lpu) { ((duty_cycles[&lpu - &std::get<0>(this->lpus)] = lpu.duty_cycle), ...); }, this->lpus);
-        return duty_cycles;
+    auto get_all_duty_cycle() {
+        return [this]<size_t... Is>(std::index_sequence<Is...>) {
+            return std::array<float, sizeof...(Is)>{std::get<Is>(this->lpus).duty_cycle...};
+        }(std::make_index_sequence<sizeof...(LPUs)>{});
     }
 
     void set_fixed_vbat_all(float vbat) {
