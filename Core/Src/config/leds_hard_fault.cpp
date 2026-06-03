@@ -13,8 +13,8 @@ uint8_t hard_fault_leds_count =
 #endif
 
 #ifdef BOARD
-GPIO_TypeDef* ports_hard_fault[] = {GPIOG, GPIOG, GPIOG, GPIOG};
-uint16_t pins_hard_fault[] = {GPIO_PIN_8, GPIO_PIN_7, GPIO_PIN_7, GPIO_PIN_8};
+GPIO_TypeDef* ports_hard_fault[] = {GPIOG, GPIOG, GPIOG, GPIOG, GPIOG};
+uint16_t pins_hard_fault[] = {GPIO_PIN_8, GPIO_PIN_7, GPIO_PIN_6, GPIO_PIN_5, GPIO_PIN_4};
 // //don't touch the count
 uint8_t hard_fault_leds_count =
     (sizeof(ports_hard_fault) / sizeof(GPIO_TypeDef*) == sizeof(pins_hard_fault) / sizeof(uint16_t))
