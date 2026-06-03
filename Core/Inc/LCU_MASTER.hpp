@@ -52,7 +52,7 @@ inline constexpr auto spi_req =
     ST_LIB::SPIDomain::Device<ST_LIB::DMADomain::Stream::dma1_stream0, ST_LIB::DMADomain::Stream::dma1_stream1>(
         ST_LIB::SPIDomain::SPIMode::MASTER,
         Pinout::spi_peripheral,
-        20'000'000,
+        20'000'000, 
         Pinout::spi_sck,
         Pinout::spi_miso,
         Pinout::spi_mosi,
@@ -110,7 +110,7 @@ inline constexpr auto eth_req = ST_LIB::EthernetDomain::Ethernet(
 );
 #elif defined(USE_PHY_LAN8700)
 inline constexpr auto eth_req = ST_LIB::EthernetDomain::Ethernet(
-    ST_LIB::EthernetDomain::PINSET_H10, "00:80:e1:00:01:07", "192.168.1.4", "255.255.255.0"
+    ST_LIB::EthernetDomain::PINSET_H10, "00:80:e1:00:01:07", "192.168.1.4", "255.255.0.0"
 );
 #else
 #error "No PHY selected for Ethernet pinset selection"
