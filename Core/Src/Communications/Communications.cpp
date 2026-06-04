@@ -1,6 +1,7 @@
 #include "Communications/Communications.hpp"
 #include "LCU_MASTER.hpp"
 #include "StateMachine/LCU_StateMachine.hpp"
+#include <cstdlib>
 
 namespace Communications {
 
@@ -104,6 +105,7 @@ void reset_slave() {
 }
 
 void init() {
+    std::srand(HAL_GetTick());
     reset_slave();
 
     // Initialize Orders
@@ -197,6 +199,7 @@ void process_orders() {
         control.input.cinema_current = 0.0f;
         LCU_SM::slave_state_machine.lpu_bitmask = 0;
         LCU_Master::lpu_array.set_fixed_duty_cycle_all(0.0f);
+        Scheduler::unregister_task(random_ref_task_id);
     }
 
     if (OrderPackets::Set_Fixed_VBAT_flag) {
@@ -298,7 +301,7 @@ void process_orders() {
     if (OrderPackets::Random_Reference_flag) {
         Scheduler::unregister_task(random_ref_task_id);
         random_ref_task_id = Scheduler::register_task(random_period_ms * 1000, +[]() {
-            float random_ref = 0.010f + (static_cast<float>(HAL_GetTick() % 5000) / 5000.0f) * 0.010f;
+                        float random_ref = 0.010f + (static_cast<float>(std::rand()) / RAND_MAX) * 0.010f;
             desired_levitation_distance = random_ref;
             control.input.RefZ = random_ref;
         });
@@ -317,7 +320,7 @@ void process_orders() {
             LCU_Master::lpu_array.set_fixed_duty_cycle_all(0.0f);
             control.input.RefZ = 0.0f;
             Scheduler::set_timeout(100000, +[]() {
-                float random_ref = 0.010f + (static_cast<float>(HAL_GetTick() % 5000) / 5000.0f) * 0.010f;
+                            float random_ref = 0.010f + (static_cast<float>(std::rand()) / RAND_MAX) * 0.010f;
                 desired_levitation_distance = random_ref;
                 control.input.RefZ = random_ref;
                 LCU_SM::slave_state_machine.desired_state = SlaveState::LEVITATION;
