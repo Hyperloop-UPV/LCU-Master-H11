@@ -44,6 +44,9 @@ auto slave_state = DataPackets::slave_state_machine::SPI_Connecting;
 
 float cinema_current = 0.0f;
 
+uint32_t random_period_ms = 0;
+uint32_t random_ref_task_id = 0;
+
 // ============================================
 // SPI Communications
 // ============================================
@@ -100,7 +103,6 @@ void reset_slave() {
     is_resetting_slave = false;
 }
 
-// (TODO) Make this depend on DOF somehow
 void init() {
     reset_slave();
 
@@ -113,39 +115,25 @@ void init() {
     OrderPackets::Set_Desired_Distance_init(desired_levitation_distance);
     OrderPackets::Set_Desired_Distance_Ramp_init(desired_levitation_distance);
     OrderPackets::Stop_Ramp_init();
-    OrderPackets::Current_Control_init(lpu_id, desired_current);
+    OrderPackets::Current_Control_init(desired_current);
     OrderPackets::All_Current_Control_init(desired_current);
-    OrderPackets::Stop_Current_Control_init(lpu_id);
-    OrderPackets::PWM_init(lpu_id, pwm_duty_cycle);
+    OrderPackets::Stop_Current_Control_init();
+    OrderPackets::PWM_init(pwm_duty_cycle);
     OrderPackets::All_PWM_init(pwm_duty_cycle);
-    OrderPackets::Stop_PWM_init(lpu_id);
+    OrderPackets::Stop_PWM_init();
     OrderPackets::Reset_Slave_init();
     OrderPackets::Reset_All_init();
     OrderPackets::Cinema_init(cinema_current);
     OrderPackets::Stop_Cinema_init();
+    OrderPackets::Random_Reference_init(random_period_ms);
+    OrderPackets::Random_Reference_Stop_init(random_period_ms);
+    OrderPackets::Stop_Random_Reference_init();
 
     // Initialize Data Packets
-    DataPackets::LPU_PWM_duties_init(
-        lpu_pwm_duty[0], lpu_pwm_duty[1], lpu_pwm_duty[2],
-        lpu_pwm_duty[3], lpu_pwm_duty[4], lpu_pwm_duty[5],
-        lpu_pwm_duty[6], lpu_pwm_duty[7], lpu_pwm_duty[8], lpu_pwm_duty[9]
-    );
-    DataPackets::LPU_coil_currents_init(
-        lpu_shunt[0], lpu_shunt[1], lpu_shunt[2],
-        lpu_shunt[3], lpu_shunt[4], lpu_shunt[5],
-        lpu_shunt[6], lpu_shunt[7], lpu_shunt[8], lpu_shunt[9]
-    );
-    DataPackets::LPU_VBATs_init(
-        lpu_vbat[0], lpu_vbat[1], lpu_vbat[2],
-        lpu_vbat[3], lpu_vbat[4], lpu_vbat[5],
-        lpu_vbat[6], lpu_vbat[7], lpu_vbat[8], lpu_vbat[9]
-    );
-    DataPackets::Airgaps_init(
-        airgap_measurements[0], airgap_measurements[1],
-        airgap_measurements[2], airgap_measurements[3],
-        airgap_measurements[4], airgap_measurements[5],
-        airgap_measurements[6], airgap_measurements[7]
-    );
+    DataPackets::LPU_PWM_duties_init(lpu_pwm_duty[0]);
+    DataPackets::LPU_coil_currents_init(lpu_shunt[0]);
+    DataPackets::LPU_VBATs_init(lpu_vbat[0]);
+    DataPackets::Airgaps_init(airgap_measurements[0]);
     DataPackets::State_Machine_init(
         master_state_machine_state,
         slave_state
@@ -193,6 +181,9 @@ void clear_flags() {
     OrderPackets::Stop_PWM_flag = false;
     OrderPackets::Reset_All_flag = false;
     OrderPackets::Reset_Slave_flag = false;
+    OrderPackets::Random_Reference_flag = false;
+    OrderPackets::Random_Reference_Stop_flag = false;
+    OrderPackets::Stop_Random_Reference_flag = false;
 }
 
 void process_orders() {
@@ -244,11 +235,7 @@ void process_orders() {
     }
 
     if (OrderPackets::Current_Control_flag) {
-        if (lpu_id < 1 || lpu_id > 10) {
-            WARNING("Invalid LPU ID in Current Control Order");
-            return;
-        }
-        LCU_SM::slave_state_machine.lpu_bitmask |= 1 << (lpu_id-1);
+        LCU_SM::slave_state_machine.lpu_bitmask = 1;
         LCU_SM::slave_state_machine.desired_state = SlaveState::CURRENT_CONTROL;
         operational_state = true;
         control.input.ramping = false;
@@ -256,7 +243,7 @@ void process_orders() {
     }
 
     if (OrderPackets::All_Current_Control_flag) {
-        LCU_SM::slave_state_machine.lpu_bitmask = (1U << LCUConfig::ACTIVE_LPU_COUNT) - 1; // Set bits for all active LPUs
+        LCU_SM::slave_state_machine.lpu_bitmask = 1;
         LCU_SM::slave_state_machine.desired_state = SlaveState::CURRENT_CONTROL;
         operational_state = true;
         control.input.ramping = false;
@@ -264,46 +251,30 @@ void process_orders() {
     }
 
     if (OrderPackets::Stop_Current_Control_flag) {
-        if (lpu_id < 1 || lpu_id > 10) {
-            WARNING("Invalid LPU ID in Stop Current Control Order");
-            return;
-        }
-        LCU_SM::slave_state_machine.lpu_bitmask &= ~(1 << (lpu_id-1));
-        if (LCU_SM::slave_state_machine.lpu_bitmask == 0) {
-            LCU_SM::slave_state_machine.desired_state = SlaveState::IDLE;
-            operational_state = false;
-        }
+        LCU_SM::slave_state_machine.lpu_bitmask = 0;
+        LCU_SM::slave_state_machine.desired_state = SlaveState::IDLE;
+        operational_state = false;
     }
 
     if (OrderPackets::PWM_flag) {
-        if (lpu_id < 1 || lpu_id > 10) {
-            WARNING("Invalid LPU ID in PWM Order");
-            return;
-        }
-        LCU_Master::lpu_array.set_fixed_duty_cycle_to(pwm_duty_cycle, lpu_id-1);
-        LCU_SM::slave_state_machine.lpu_bitmask |= 1 << (lpu_id-1);
+        LCU_Master::lpu_array.set_fixed_duty_cycle_to(pwm_duty_cycle, 0);
+        LCU_SM::slave_state_machine.lpu_bitmask = 1;
         LCU_SM::slave_state_machine.desired_state = SlaveState::DEBUG;
         operational_state = true;
     }
     
     if (OrderPackets::All_PWM_flag) {
         LCU_Master::lpu_array.set_fixed_duty_cycle_all(pwm_duty_cycle);
-        LCU_SM::slave_state_machine.lpu_bitmask = (1U << LCUConfig::ACTIVE_LPU_COUNT) - 1; // Set bits for all active LPUs
+        LCU_SM::slave_state_machine.lpu_bitmask = 1;
         LCU_SM::slave_state_machine.desired_state = SlaveState::DEBUG;
         operational_state = true;
     }
 
     if (OrderPackets::Stop_PWM_flag) {
-        if (lpu_id < 1 || lpu_id > 10) {
-            WARNING("Invalid LPU ID in Stop PWM Order");
-            return;
-        }
-        LCU_Master::lpu_array.set_fixed_duty_cycle_to(0.0f, lpu_id-1);
-        LCU_SM::slave_state_machine.lpu_bitmask &= ~(1 << (lpu_id-1));
-        if (LCU_SM::slave_state_machine.lpu_bitmask == 0) {
-            LCU_SM::slave_state_machine.desired_state = SlaveState::IDLE;
-            operational_state = false;
-        }
+        LCU_Master::lpu_array.set_fixed_duty_cycle_to(0.0f, 0);
+        LCU_SM::slave_state_machine.lpu_bitmask = 0;
+        LCU_SM::slave_state_machine.desired_state = SlaveState::IDLE;
+        operational_state = false;
     }
 
     if (OrderPackets::Reset_Slave_flag) {
@@ -322,6 +293,51 @@ void process_orders() {
     if (OrderPackets::Stop_Cinema_flag) {
         control.input.cinema = false;
         control.input.cinema_current = 0.0f;
+    }
+
+    if (OrderPackets::Random_Reference_flag) {
+        Scheduler::unregister_task(random_ref_task_id);
+        random_ref_task_id = Scheduler::register_task(random_period_ms * 1000, +[]() {
+            float random_ref = 0.010f + (static_cast<float>(HAL_GetTick() % 5000) / 5000.0f) * 0.010f;
+            desired_levitation_distance = random_ref;
+            control.input.RefZ = random_ref;
+        });
+        LCU_SM::slave_state_machine.desired_state = SlaveState::LEVITATION;
+        operational_state = true;
+        LCU_SM::slave_state_machine.lpu_bitmask = 1;
+        control.input.ramping = false;
+    }
+
+    if (OrderPackets::Random_Reference_Stop_flag) {
+        Scheduler::unregister_task(random_ref_task_id);
+        random_ref_task_id = Scheduler::register_task(random_period_ms * 1000, +[]() {
+            LCU_SM::slave_state_machine.desired_state = SlaveState::IDLE;
+            operational_state = false;
+            LCU_SM::slave_state_machine.lpu_bitmask = 0;
+            LCU_Master::lpu_array.set_fixed_duty_cycle_all(0.0f);
+            control.input.RefZ = 0.0f;
+            Scheduler::set_timeout(100000, +[]() {
+                float random_ref = 0.010f + (static_cast<float>(HAL_GetTick() % 5000) / 5000.0f) * 0.010f;
+                desired_levitation_distance = random_ref;
+                control.input.RefZ = random_ref;
+                LCU_SM::slave_state_machine.desired_state = SlaveState::LEVITATION;
+                operational_state = true;
+                LCU_SM::slave_state_machine.lpu_bitmask = 1;
+                control.input.ramping = false;
+            });
+        });
+        LCU_SM::slave_state_machine.desired_state = SlaveState::LEVITATION;
+        operational_state = true;
+        LCU_SM::slave_state_machine.lpu_bitmask = 1;
+    }
+
+    if (OrderPackets::Stop_Random_Reference_flag) {
+        Scheduler::unregister_task(random_ref_task_id);
+        LCU_SM::slave_state_machine.desired_state = SlaveState::IDLE;
+        operational_state = false;
+        LCU_SM::slave_state_machine.lpu_bitmask = 0;
+        LCU_Master::lpu_array.set_fixed_duty_cycle_all(0.0f);
+        control.input.RefZ = 0.0f;
     }
 }
 
