@@ -21,13 +21,12 @@ def parse_args():
 
 def main():
     args = parse_args()
-    adj = args.adj.strip()
-    json_path = "Core/Inc/Code_generation/" + adj
+    json_path = args.adj.strip()
     board = args.board.strip()
     if not board:
         raise SystemExit("Board name cannot be empty")
-    if not adj:
-        raise SystemExit("Adjustment configuration name cannot be empty")
+    if not json_path:
+        raise SystemExit("Adjustment configuration path cannot be empty")
 
     Generate_PacketDescription(json_path, board)
     Generate_DataPackets_hpp(board)

@@ -34,6 +34,24 @@ option(USE_3_DOF "Build for 3-DOF configuration" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
 option(BUILD_EXAMPLES "Build Core/Src/Examples sources" OFF)
 option(USE_CCACHE "Use ccache if available" ON)
+option(ADJ_AUTO_PUSH "Auto-commit+push generated adj JSONs to remote" OFF)
+
+# Adj repository configuration (committed)
+set(ADJ_REMOTE "git@github.com:Hyperloop-UPV/adj.git" CACHE STRING "Git remote URL for all adj repositories")
+set(ADJ_1DOF_BRANCH "LCU-H11-1DOF-v2" CACHE STRING "Git branch for adj_1DOF")
+set(ADJ_3DOF_BRANCH "LCU-H11-3DOF" CACHE STRING "Git branch for adj_3DOF")
+set(ADJ_5DOF_BRANCH "LCU-H11-5DOF" CACHE STRING "Git branch for adj_5DOF")
+
+# Parse .env for developer overrides (ADJ_AUTO_PULL, ADJ_AUTO_PUSH)
+if(EXISTS "${CMAKE_SOURCE_DIR}/.env")
+  file(STRINGS "${CMAKE_SOURCE_DIR}/.env" _env_lines)
+  foreach(_line ${_env_lines})
+    string(STRIP "${_line}" _line)
+    if(_line MATCHES "^ADJ_AUTO_(PULL|PUSH)=(.*)$")
+      set(${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE STRING "" FORCE)
+    endif()
+  endforeach()
+endif()
 if(NOT DEFINED ENABLE_LTO)
   if(CMAKE_CROSSCOMPILING)
     set(ENABLE_LTO OFF)
@@ -67,15 +85,45 @@ file(GLOB_RECURSE SOURCE_CPP  ${CMAKE_SOURCE_DIR}/Core/*.cpp)
 file(GLOB_RECURSE SOURCE_H    ${CMAKE_SOURCE_DIR}/Core/*.h)
 file(GLOB_RECURSE SOURCE_HPP  ${CMAKE_SOURCE_DIR}/Core/*.hpp)
 
-# Determine which JSON config to use based on USE_5_DOF
-if(USE_5_DOF OR USE_3_DOF)
+# Determine which JSON config to use based on DOF selection
+if(USE_5_DOF)
   set(GENERATOR_JSON_DIR "adj_5DOF")
+elseif(USE_3_DOF)
+  set(GENERATOR_JSON_DIR "adj_3DOF")
 else()
   set(GENERATOR_JSON_DIR "adj_1DOF")
 endif()
 
+# Adj generation from Jinja2 templates (always generate all 3 DOFs)
+set(ADJ_GENERATOR_SCRIPT ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/adj_generate.py)
+set(ADJ_GEN_STAMP ${CMAKE_SOURCE_DIR}/deps/.adj_generated_stamp)
+file(GLOB_RECURSE ADJ_TEMPLATES
+  ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/*.j2
+)
+
+add_custom_command(
+  OUTPUT ${ADJ_GEN_STAMP}
+  COMMAND ${CMAKE_COMMAND} -E env
+    ADJ_REMOTE=${ADJ_REMOTE}
+    ADJ_1DOF_BRANCH=${ADJ_1DOF_BRANCH}
+    ADJ_3DOF_BRANCH=${ADJ_3DOF_BRANCH}
+    ADJ_5DOF_BRANCH=${ADJ_5DOF_BRANCH}
+    ${PYTHON_FOR_TOOLS} ${ADJ_GENERATOR_SCRIPT}
+    --all
+    --no-pull
+    $<$<BOOL:${ADJ_AUTO_PUSH}>:--auto-push>
+  COMMAND ${CMAKE_COMMAND} -E touch ${ADJ_GEN_STAMP}
+  DEPENDS
+    ${ADJ_GENERATOR_SCRIPT}
+    ${ADJ_TEMPLATES}
+    ${CMAKE_SOURCE_DIR}/.env
+  COMMENT "Generating all adj JSONs from templates"
+)
+
+add_custom_target(generate_adj DEPENDS ${ADJ_GEN_STAMP})
+
 file(GLOB_RECURSE GENERATOR_JSONS
-  ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/${GENERATOR_JSON_DIR}/*.json
+  ${CMAKE_SOURCE_DIR}/deps/${GENERATOR_JSON_DIR}/*.json
 )
 
 set(GENERATED_DATA_PACKETS ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/DataPackets.hpp)
@@ -84,9 +132,10 @@ add_custom_command(
   OUTPUT
   ${GENERATED_DATA_PACKETS}
   ${GENERATED_ORDER_PACKETS}
-  COMMAND ${PYTHON_FOR_TOOLS} ${GENERATOR_SCRIPT} ${BOARD_NAME} ${GENERATOR_JSON_DIR}
+  COMMAND ${PYTHON_FOR_TOOLS} ${GENERATOR_SCRIPT} ${BOARD_NAME} deps/${GENERATOR_JSON_DIR}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   DEPENDS
+  ${ADJ_GEN_STAMP}
   ${GENERATOR_SCRIPT}
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/Packet_generation.py
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/Packet_descriptions.py
@@ -98,6 +147,7 @@ add_custom_command(
 
 add_custom_target(run_generator
   DEPENDS
+  generate_adj
   ${GENERATED_DATA_PACKETS}
   ${GENERATED_ORDER_PACKETS}
 )

@@ -102,3 +102,10 @@ tools/*.bin
 /Core/Inc/Communications/Packets/DataPackets.hpp
 /Core/Inc/Communications/Packets/OrderPackets.hpp
 /Core/Src/Runes/generated_metadata.cpp
+
+# Generated adj repositories
+/deps/adj_*
+/deps/.adj_generated_stamp
+
+# Local developer config
+/.env

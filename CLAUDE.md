@@ -6,7 +6,7 @@ Firmware template for HyperloopUPV pod control boards. Target: STM32H723ZGT6 (AR
 
 - **ST-LIB** (`deps/ST-LIB`): hardware abstraction library (submodule). All peripheral access goes through it. Never use STM32 HAL directly.
 - **`Board<>`** template: compile-time peripheral registration. All peripherals declared as `constexpr` globals and passed as template parameters.
-- **Packet system**: inter-board communication via UDP/TCP. Headers generated from JSON schemas in `Core/Inc/Code_generation/JSON_ADE/`.
+- **Packet system**: inter-board communication via UDP/TCP. Headers generated from Jinja2 templates → DOF-specific JSON configs in `deps/adj_*DOF/` → C++ headers.
 - **Examples** (`Core/Src/Examples/`): self-contained programs enabled via `-DEXAMPLE_[NAME]=ON`. Each has `TEST_0`, `TEST_1`... variants with separate `main()`.
 
 ## Build system
@@ -14,30 +14,42 @@ Firmware template for HyperloopUPV pod control boards. Target: STM32H723ZGT6 (AR
 CMake + Ninja. Python venv at `virtual/`. Use `./hyper` CLI for all common tasks.
 
 ```bash
-./hyper build main --preset simulator              # build simulator
-./hyper build main --preset nucleo-debug           # build for Nucleo board
-./hyper build adc --test 0 --preset nucleo-debug   # build ExampleADC TEST_0
-./hyper run adc --test 0                           # flash + open UART
-./hyper stlib build --preset simulator --run-tests # run CTest suite
-./hyper doctor                                     # check tool dependencies
+./hyper build main --preset simulator-5dof                     # build simulator (5-DOF)
+./hyper build main --preset nucleo-debug-eth-1dof               # build for Nucleo (1-DOF)
+./hyper build adc --test 0 --preset nucleo-debug-eth-3dof       # build ExampleADC TEST_0 (3-DOF)
+./hyper run adc --test 0                                        # flash + open UART
+./hyper stlib build --preset simulator-5dof --run-tests         # run CTest suite
+./hyper doctor                                                  # check tool dependencies
 ```
 
 ## Presets
 
-| Preset | Hardware | Ethernet | Use when |
-|--------|----------|----------|----------|
-| `simulator` | Host PC | No | Tests, CI, fast iteration |
-| `simulator-asan` | Host PC | No | Memory/UB sanitizer runs |
-| `nucleo-debug` | Nucleo H7 | No | Debugging on Nucleo |
-| `nucleo-release` | Nucleo H7 | No | Production on Nucleo |
-| `nucleo-debug-eth` | Nucleo H7 | Yes | Ethernet debugging on Nucleo |
-| `nucleo-relwithdebinfo-eth` | Nucleo H7 | Yes | Ethernet profiling on Nucleo |
-| `board-debug` | Custom PCB | No | Debugging on custom board |
-| `board-debug-eth-ksz8041` | Custom PCB | KSZ8041 | Ethernet with KSZ8041 PHY |
-| `board-debug-eth-lan8700` | Custom PCB | LAN8700 | Ethernet with LAN8700 PHY |
-| `board-release-*` | Custom PCB | Various | Production builds |
+All presets are suffixed with `-1dof`, `-3dof`, or `-5dof` to select the DOF configuration.
+
+| Preset pattern | Hardware | Ethernet | Use when |
+|----------------|----------|----------|----------|
+| `simulator-{1,3,5}dof` | Host PC | No | Tests, CI, fast iteration |
+| `simulator-asan-{1,3,5}dof` | Host PC | No | Memory/UB sanitizer runs |
+| `nucleo-debug-eth-{1,3,5}dof` | Nucleo H7 | Yes | Debugging on Nucleo |
+| `nucleo-release-eth-{1,3,5}dof` | Nucleo H7 | Yes | Production on Nucleo |
+| `nucleo-relwithdebinfo-eth-{1,3,5}dof` | Nucleo H7 | Yes | Profiling on Nucleo |
+| `board-debug-eth-lan8700-{1,3,5}dof` | Custom PCB | LAN8700 | Debugging on custom board |
+| `board-release-eth-lan8700-{1,3,5}dof` | Custom PCB | LAN8700 | Production on custom board |
+| `board-relwithdebinfo-eth-lan8700-{1,3,5}dof` | Custom PCB | LAN8700 | Profiling on custom board |
 
 `nucleo` presets set `TARGET_NUCLEO=ON`, adjusting pin/LED mappings for the Nucleo dev board. `board` presets target the custom HyperloopUPV PCB. `relwithdebinfo` keeps debug symbols with optimizations for profiling.
+
+## DOF Configuration
+
+Three compile-time configurations select LPU/airgap counts and packet definitions:
+
+| DOF | CMake option | LPU count | Airgap count | `lpu_id` in orders |
+|-----|-------------|-----------|--------------|---------------------|
+| 1-DOF | (default) | 1 | 1 | No |
+| 3-DOF | `-DUSE_3_DOF=ON` | 4 | 4 | Yes |
+| 5-DOF | `-DUSE_5_DOF=ON` | 10 | 8 | Yes |
+
+Central config: `Core/Inc/Config/LCUHardwareConfig.hpp`. The `Communications.cpp` uses `#if defined(USE_5_DOF) || defined(USE_3_DOF)` blocks to handle `lpu_id`-dependent order signatures and bitmask logic.
 
 ## Code conventions
 
@@ -50,28 +62,36 @@ CMake + Ninja. Python venv at `virtual/`. Use `./hyper` CLI for all common tasks
 
 ## Packet code generation
 
-Generated from JSON schemas in `Core/Inc/Code_generation/JSON_ADE/boards/[BOARD]/`.
+Packets are defined via a two-stage code generation pipeline:
 
-| File | Purpose |
-|------|---------|
-| `[BOARD].json` | Board ID, IP address, references to other files |
-| `[BOARD]_measurements.json` | Variable definitions with types |
-| `packets.json` | Data packets (outgoing telemetry) |
-| `orders.json` | Order packets (incoming commands) |
-| `sockets.json` | Socket definitions (ServerSocket, Socket, DatagramSocket) |
-
-Measurement types: `bool`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `int32`, `int64`, `float`, `double`.
+1. **Adj generation**: Jinja2 templates in `Core/Inc/Code_generation/adj_templates/*.j2` generate DOF-specific JSON configs into `deps/adj_{1,3,5}DOF/`. Takes parameters: `lpu_count`, `airgap_count`, `has_lpu_id`.
+2. **Packet generation**: `Generator.py` reads the active DOF's JSON config and produces C++ headers.
 
 Generated output (gitignored, rebuilt on configure):
 - `Core/Inc/Communications/Packets/DataPackets.hpp`
 - `Core/Inc/Communications/Packets/OrderPackets.hpp`
 
+Adj repos in `deps/adj_*/` are gitignored — managed by `adj_generate.py` (auto-clone, auto-pull, generate, auto-push). Remote URLs are CMake cache variables in `CMakeLists.txt`. Toggles (`ADJ_AUTO_PULL`, `ADJ_AUTO_PUSH`) go in `.env`.
+
 Manual regeneration:
 ```bash
-python3 Core/Inc/Code_generation/Generator.py TEST
+python3 Core/Inc/Code_generation/adj_templates/adj_generate.py --all
+python3 Core/Inc/Code_generation/Generator.py LCU deps/adj_5DOF
 ```
 
-CMake runs this automatically at configure time using the `BOARD_NAME` variable (default: `TEST`). Available boards: `Core/Inc/Code_generation/JSON_ADE/boards.json`.
+Measurement types: `bool`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `int32`, `int64`, `float`, `double`.
+
+JSON file structure per adj repo:
+
+| File | Purpose |
+|------|---------|
+| `boards.json` | Board ID → path mapping |
+| `general_info.json` | Ports, backend IP, units, message IDs |
+| `boards/LCU/LCU.json` | Board ID, IP address, references to other files |
+| `boards/LCU/LCU_measurements.json` | Variable definitions with types |
+| `boards/LCU/packets.json` | Data packets (outgoing telemetry) |
+| `boards/LCU/orders.json` | Order packets (incoming commands) |
+| `boards/LCU/sockets.json` | Socket definitions (ServerSocket, DatagramSocket) |
 
 ## Examples pattern
 
