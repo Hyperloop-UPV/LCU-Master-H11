@@ -106,6 +106,7 @@ tools/*.bin
 # Generated adj repositories
 /deps/adj_*
 /deps/.adj_generated_stamp
+/deps/.active_dof
 
 # Local developer config
 /.env

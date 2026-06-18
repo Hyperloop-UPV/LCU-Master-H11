@@ -94,6 +94,26 @@ else()
   set(GENERATOR_JSON_DIR "adj_1DOF")
 endif()
 
+# Force packet regeneration when switching DOF presets.
+# Sentinel lives in source tree so all build dirs share DOF-awareness.
+set(_ACTIVE_DOF_FILE "${CMAKE_SOURCE_DIR}/deps/.active_dof")
+if(EXISTS "${_ACTIVE_DOF_FILE}")
+  file(READ "${_ACTIVE_DOF_FILE}" _previous_dof)
+  string(STRIP "${_previous_dof}" _previous_dof)
+else()
+  set(_previous_dof "")
+endif()
+if(NOT _previous_dof STREQUAL "${GENERATOR_JSON_DIR}")
+  if(_previous_dof)
+    message(STATUS "Active DOF changed (${_previous_dof} -> ${GENERATOR_JSON_DIR}), forcing packet regeneration")
+  endif()
+  file(REMOVE
+    ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/DataPackets.hpp
+    ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/OrderPackets.hpp
+  )
+endif()
+file(WRITE "${_ACTIVE_DOF_FILE}" "${GENERATOR_JSON_DIR}")
+
 # Adj generation from Jinja2 templates (always generate all 3 DOFs)
 set(ADJ_GENERATOR_SCRIPT ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/adj_generate.py)
 set(ADJ_GEN_STAMP ${CMAKE_SOURCE_DIR}/deps/.adj_generated_stamp)
