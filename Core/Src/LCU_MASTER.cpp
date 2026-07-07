@@ -21,6 +21,8 @@ void init() {
     );
 
     Communications::init();
+    
+    Watchdog::start();
 }
 
 void update() {
@@ -31,6 +33,7 @@ void update() {
     MDMA::update();
     Board::evaluate_protections();
     Diagnostics::Hub::flush();
+    Watchdog::refresh();
 }
 
 } // namespace LCU_Master
