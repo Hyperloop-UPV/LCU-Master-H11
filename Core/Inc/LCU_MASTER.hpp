@@ -106,11 +106,11 @@ inline constexpr auto rst5_req = ST_LIB::DigitalOutputDomain::DigitalOutput(Pino
 #ifdef STLIB_ETH
 #if defined(USE_PHY_LAN8742)
 inline constexpr auto eth_req = ST_LIB::EthernetDomain::Ethernet(
-    ST_LIB::EthernetDomain::PINSET_H10, "00:80:e1:00:01:07", "192.168.1.4", "255.255.0.0"
+    ST_LIB::EthernetDomain::PINSET_H10, "00:80:e1:00:01:04", "192.168.1.4", "255.255.0.0"
 );
 #elif defined(USE_PHY_LAN8700)
 inline constexpr auto eth_req = ST_LIB::EthernetDomain::Ethernet(
-    ST_LIB::EthernetDomain::PINSET_H10, "00:80:e1:00:01:07", "192.168.1.4", "255.255.0.0"
+    ST_LIB::EthernetDomain::PINSET_H10, "00:80:e1:00:01:04", "192.168.1.4", "255.255.0.0"
 );
 #else
 #error "No PHY selected for Ethernet pinset selection"
