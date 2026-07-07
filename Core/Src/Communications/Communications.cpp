@@ -81,8 +81,8 @@ using SpiComms = SpiCommunications<
     +[]() { // OnMaxErrors
         FAULT("Maximum SPI error count exceeded");
     },
-    0,  // max_errors (0 = disabled)
-    0>; // spi_timeout_limit (0 = disabled)
+    1,  // max_errors (0 = disabled)
+    10000>; // spi_timeout_limit (0 = disabled)
 
 SpiComms spi_comms{};
 
