@@ -21,7 +21,7 @@ void init() {
     );
 
     Communications::init();
-    
+    Watchdog::watchdog_time = std::chrono::milliseconds(10);
     Watchdog::start();
 }
 
