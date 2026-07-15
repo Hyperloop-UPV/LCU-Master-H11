@@ -29,29 +29,10 @@ else()
 endif()
 
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
-option(USE_5_DOF "Build for 5-DOF configuration" OFF)
-option(USE_3_DOF "Build for 3-DOF configuration" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
 option(BUILD_EXAMPLES "Build Core/Src/Examples sources" OFF)
 option(USE_CCACHE "Use ccache if available" ON)
-option(ADJ_AUTO_PUSH "Auto-commit+push generated adj JSONs to remote" OFF)
 
-# Adj repository configuration (committed)
-set(ADJ_REMOTE "git@github.com:Hyperloop-UPV/adj.git" CACHE STRING "Git remote URL for all adj repositories")
-set(ADJ_1DOF_BRANCH "Astra" CACHE STRING "Git branch for adj_1DOF")
-set(ADJ_3DOF_BRANCH "Astra" CACHE STRING "Git branch for adj_3DOF")
-set(ADJ_5DOF_BRANCH "Astra" CACHE STRING "Git branch for adj_5DOF")
-
-# Parse .env for developer overrides (ADJ_AUTO_PULL, ADJ_AUTO_PUSH)
-if(EXISTS "${CMAKE_SOURCE_DIR}/.env")
-  file(STRINGS "${CMAKE_SOURCE_DIR}/.env" _env_lines)
-  foreach(_line ${_env_lines})
-    string(STRIP "${_line}" _line)
-    if(_line MATCHES "^ADJ_AUTO_(PULL|PUSH)=(.*)$")
-      set(${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE STRING "" FORCE)
-    endif()
-  endforeach()
-endif()
 if(NOT DEFINED ENABLE_LTO)
   if(CMAKE_CROSSCOMPILING)
     set(ENABLE_LTO OFF)
@@ -72,8 +53,6 @@ endif()
 
 message(STATUS "Template project: CMAKE_CROSSCOMPILING = ${CMAKE_CROSSCOMPILING}")
 message(STATUS "Template project: USE_ETHERNET         = ${USE_ETHERNET}")
-message(STATUS "Template project: USE_5_DOF            = ${USE_5_DOF}")
-message(STATUS "Template project: USE_3_DOF            = ${USE_3_DOF}")
 message(STATUS "Template project: TARGET_NUCLEO        = ${TARGET_NUCLEO}")
 message(STATUS "Template project: BOARD_NAME           = ${BOARD_NAME}")
 
@@ -85,78 +64,36 @@ file(GLOB_RECURSE SOURCE_CPP  ${CMAKE_SOURCE_DIR}/Core/*.cpp)
 file(GLOB_RECURSE SOURCE_H    ${CMAKE_SOURCE_DIR}/Core/*.h)
 file(GLOB_RECURSE SOURCE_HPP  ${CMAKE_SOURCE_DIR}/Core/*.hpp)
 
-# Determine which JSON config to use based on DOF selection
-if(USE_5_DOF)
-  set(GENERATOR_JSON_DIR "adj_5DOF")
-elseif(USE_3_DOF)
-  set(GENERATOR_JSON_DIR "adj_3DOF")
-else()
-  set(GENERATOR_JSON_DIR "adj_1DOF")
-endif()
+set(GENERATOR_JSON_DIR "${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/JSON_ADE")
 
-# Force packet regeneration when switching DOF presets.
-# Sentinel lives in source tree so all build dirs share DOF-awareness.
-set(_ACTIVE_DOF_FILE "${CMAKE_SOURCE_DIR}/deps/.active_dof")
-if(EXISTS "${_ACTIVE_DOF_FILE}")
-  file(READ "${_ACTIVE_DOF_FILE}" _previous_dof)
-  string(STRIP "${_previous_dof}" _previous_dof)
+# Force packet regeneration when JSON_ADE submodule changes.
+set(_ADJ_HASH_FILE "${CMAKE_SOURCE_DIR}/deps/.adj_changed")
+set(_ADJ_CURRENT_HASH "")
+execute_process(
+  COMMAND git -C "${GENERATOR_JSON_DIR}" rev-parse HEAD
+  OUTPUT_VARIABLE _ADJ_CURRENT_HASH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+if(EXISTS "${_ADJ_HASH_FILE}")
+  file(READ "${_ADJ_HASH_FILE}" _previous_adj_hash)
+  string(STRIP "${_previous_adj_hash}" _previous_adj_hash)
 else()
-  set(_previous_dof "")
+  set(_previous_adj_hash "")
 endif()
-if(NOT _previous_dof STREQUAL "${GENERATOR_JSON_DIR}")
-  if(_previous_dof)
-    message(STATUS "Active DOF changed (${_previous_dof} -> ${GENERATOR_JSON_DIR}), forcing packet regeneration")
+if(NOT _previous_adj_hash STREQUAL "${_ADJ_CURRENT_HASH}" OR NOT EXISTS "${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/DataPackets.hpp")
+  if(_previous_adj_hash)
+    message(STATUS "Adj changed, forcing packet regeneration")
   endif()
   file(REMOVE
     ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/DataPackets.hpp
     ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/OrderPackets.hpp
   )
 endif()
-file(WRITE "${_ACTIVE_DOF_FILE}" "${GENERATOR_JSON_DIR}")
-
-# Adj generation from Jinja2 templates (always attempt pull on every build).
-# The python script is content-aware: it only rewrites JSONs and only touches
-# the stamp when something actually changed, so downstream packet regeneration
-# (and the C++ recompile it triggers) only happens on real changes.
-set(ADJ_GENERATOR_SCRIPT ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/adj_generate.py)
-set(ADJ_GEN_STAMP ${CMAKE_SOURCE_DIR}/deps/.adj_generated_stamp)
-file(GLOB_RECURSE ADJ_TEMPLATES
-  ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/*.j2
-)
-
-# Sentinel file touched on every build so the generator command below re-runs
-# even when the templates/.env are unchanged. Without this, the stamp file
-# suppresses re-execution and remote changes (auto-pull) are never fetched.
-set(ADJ_SENTINEL ${CMAKE_BINARY_DIR}/adj_pull_sentinel)
-add_custom_target(adj_pull_sentinel
-  COMMAND ${CMAKE_COMMAND} -E touch ${ADJ_SENTINEL}
-  COMMENT "Refresh adj pull sentinel"
-)
-
-add_custom_command(
-  OUTPUT ${ADJ_GEN_STAMP}
-  COMMAND ${CMAKE_COMMAND} -E env
-    ADJ_REMOTE=${ADJ_REMOTE}
-    ADJ_1DOF_BRANCH=${ADJ_1DOF_BRANCH}
-    ADJ_3DOF_BRANCH=${ADJ_3DOF_BRANCH}
-    ADJ_5DOF_BRANCH=${ADJ_5DOF_BRANCH}
-    ${PYTHON_FOR_TOOLS} ${ADJ_GENERATOR_SCRIPT}
-    --all
-    --stamp ${ADJ_GEN_STAMP}
-    $<$<BOOL:${ADJ_AUTO_PUSH}>:--auto-push>
-  DEPENDS
-    ${ADJ_GENERATOR_SCRIPT}
-    ${ADJ_TEMPLATES}
-    ${CMAKE_SOURCE_DIR}/.env
-    ${ADJ_SENTINEL}
-  COMMENT "Generating all adj JSONs from templates (auto-pull)"
-)
-
-add_custom_target(generate_adj DEPENDS ${ADJ_GEN_STAMP})
-add_dependencies(generate_adj adj_pull_sentinel)
+file(WRITE "${_ADJ_HASH_FILE}" "${_ADJ_CURRENT_HASH}")
 
 file(GLOB_RECURSE GENERATOR_JSONS CONFIGURE_DEPENDS
-  ${CMAKE_SOURCE_DIR}/deps/${GENERATOR_JSON_DIR}/*.json
+  ${GENERATOR_JSON_DIR}/*.json
 )
 
 set(GENERATED_DATA_PACKETS ${CMAKE_SOURCE_DIR}/Core/Inc/Communications/Packets/DataPackets.hpp)
@@ -165,10 +102,9 @@ add_custom_command(
   OUTPUT
   ${GENERATED_DATA_PACKETS}
   ${GENERATED_ORDER_PACKETS}
-  COMMAND ${PYTHON_FOR_TOOLS} ${GENERATOR_SCRIPT} ${BOARD_NAME} deps/${GENERATOR_JSON_DIR}
+  COMMAND ${PYTHON_FOR_TOOLS} ${GENERATOR_SCRIPT} ${BOARD_NAME} ${GENERATOR_JSON_DIR}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   DEPENDS
-  ${ADJ_GEN_STAMP}
   ${GENERATOR_SCRIPT}
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/Packet_generation.py
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/Packet_generation/Packet_descriptions.py
@@ -180,7 +116,6 @@ add_custom_command(
 
 add_custom_target(run_generator
   DEPENDS
-  generate_adj
   ${GENERATED_DATA_PACKETS}
   ${GENERATED_ORDER_PACKETS}
 )
@@ -257,9 +192,7 @@ if(CMAKE_CROSSCOMPILING)
   target_compile_definitions(${EXECUTABLE} PRIVATE
     $<$<BOOL:${EXAMPLE_SELECTED}>:EXAMPLE_SELECTED>
     $<$<BOOL:${USE_ETHERNET}>:STLIB_ETH>
-    $<$<BOOL:${USE_5_DOF}>:USE_5_DOF>
-    $<$<BOOL:${USE_3_DOF}>:USE_3_DOF>
-    $<$<AND:$<NOT:$<BOOL:${USE_5_DOF}>>,$<NOT:$<BOOL:${USE_3_DOF}>>>:USE_1_DOF>
+    USE_5_DOF
     $<IF:$<BOOL:${TARGET_NUCLEO}>,NUCLEO,BOARD>
     $<IF:$<BOOL:${TARGET_NUCLEO}>,HSE_VALUE=8000000,HSE_VALUE=25000000>
   )

@@ -4,3 +4,7 @@
 [submodule "deps/LCU-Shared-H11"]
 	path = deps/LCU-Shared-H11
 	url = https://github.com/Hyperloop-UPV/LCU-Shared-H11.git
+[submodule "Core/Inc/Code_generation/JSON_ADE"]
+	path = Core/Inc/Code_generation/JSON_ADE
+	url = git@github.com:Hyperloop-UPV/adj.git
+	branch = Astra

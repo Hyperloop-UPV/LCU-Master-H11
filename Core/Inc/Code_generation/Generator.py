@@ -14,7 +14,7 @@ def parse_args():
         "board", help="Board key from Core/Inc/Code_generation/JSON_ADE/boards.json"
     )
     parser.add_argument(
-        "adj", help="Adjustment configuration name (e.g., adj_5DOF or adj_1DOF)"
+        "adj", help="Path to JSON_ADE directory"
     )
     return parser.parse_args()
 

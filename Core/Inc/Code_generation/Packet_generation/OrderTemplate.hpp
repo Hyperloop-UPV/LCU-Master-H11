@@ -44,7 +44,7 @@ public:
     {
         {% for packet in packets -%}
         if ({{packet.name}}_order == nullptr) {
-            FAULT("Order {{packet.name}} not initialized");
+            PANIC("Order {{packet.name}} not initialized");
         }
         {% endfor %}
 

@@ -24,32 +24,10 @@
             }
         },
         {
-            "name": "dof-1dof",
-            "hidden": true,
-            "cacheVariables": {
-                "USE_5_DOF": "OFF"
-            }
-        },
-        {
-            "name": "dof-3dof",
-            "hidden": true,
-            "cacheVariables": {
-                "USE_3_DOF": "ON"
-            }
-        },
-        {
-            "name": "dof-5dof",
-            "hidden": true,
-            "cacheVariables": {
-                "USE_5_DOF": "ON"
-            }
-        },
-        {
-            "name": "nucleo-debug-eth-1dof",
-            "displayName": "Nucleo [DBG 1DOF] [ETH]",
+            "name": "nucleo-debug-eth",
+            "displayName": "Nucleo [DBG] [ETH]",
             "inherits": [
-                "mcu",
-                "dof-1dof"
+                "mcu"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -58,37 +36,10 @@
             }
         },
         {
-            "name": "nucleo-debug-eth-3dof",
-            "displayName": "Nucleo [DBG 3DOF] [ETH]",
+            "name": "nucleo-release-eth",
+            "displayName": "Nucleo [REL] [ETH]",
             "inherits": [
-                "mcu",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "TARGET_NUCLEO": "ON",
-                "USE_ETHERNET": "ON"
-            }
-        },
-        {
-            "name": "nucleo-debug-eth-5dof",
-            "displayName": "Nucleo [DBG 5DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "TARGET_NUCLEO": "ON",
-                "USE_ETHERNET": "ON"
-            }
-        },
-        {
-            "name": "nucleo-release-eth-1dof",
-            "displayName": "Nucleo [REL 1DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
+                "mcu"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -97,37 +48,10 @@
             }
         },
         {
-            "name": "nucleo-release-eth-3dof",
-            "displayName": "Nucleo [REL 3DOF] [ETH]",
+            "name": "nucleo-relwithdebinfo-eth",
+            "displayName": "Nucleo [RWD] [ETH]",
             "inherits": [
-                "mcu",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "TARGET_NUCLEO": "ON",
-                "USE_ETHERNET": "ON"
-            }
-        },
-        {
-            "name": "nucleo-release-eth-5dof",
-            "displayName": "Nucleo [REL 5DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "TARGET_NUCLEO": "ON",
-                "USE_ETHERNET": "ON"
-            }
-        },
-        {
-            "name": "nucleo-relwithdebinfo-eth-1dof",
-            "displayName": "Nucleo [RWD 1DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
+                "mcu"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
@@ -136,37 +60,10 @@
             }
         },
         {
-            "name": "nucleo-relwithdebinfo-eth-3dof",
-            "displayName": "Nucleo [RWD 3DOF] [ETH]",
+            "name": "board-debug-eth-lan8700",
+            "displayName": "Board [DBG] [ETH]",
             "inherits": [
-                "mcu",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "TARGET_NUCLEO": "ON",
-                "USE_ETHERNET": "ON"
-            }
-        },
-        {
-            "name": "nucleo-relwithdebinfo-eth-5dof",
-            "displayName": "Nucleo [RWD 5DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "TARGET_NUCLEO": "ON",
-                "USE_ETHERNET": "ON"
-            }
-        },
-        {
-            "name": "board-debug-eth-lan8700-1dof",
-            "displayName": "Board [DBG 1DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
+                "mcu"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -175,37 +72,10 @@
             }
         },
         {
-            "name": "board-debug-eth-lan8700-3dof",
-            "displayName": "Board [DBG 3DOF] [ETH]",
+            "name": "board-release-eth-lan8700",
+            "displayName": "Board [REL] [ETH]",
             "inherits": [
-                "mcu",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-debug-eth-lan8700-5dof",
-            "displayName": "Board [DBG 5DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-release-eth-lan8700-1dof",
-            "displayName": "Board [REL 1DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
+                "mcu"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -214,37 +84,10 @@
             }
         },
         {
-            "name": "board-release-eth-lan8700-3dof",
-            "displayName": "Board [REL 3DOF] [ETH]",
+            "name": "board-relwithdebinfo-eth-lan8700",
+            "displayName": "Board [RWD] [ETH]",
             "inherits": [
-                "mcu",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-release-eth-lan8700-5dof",
-            "displayName": "Board [REL 5DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-relwithdebinfo-eth-lan8700-1dof",
-            "displayName": "Board [RWD 1DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-1dof"
+                "mcu"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
@@ -253,94 +96,20 @@
             }
         },
         {
-            "name": "board-relwithdebinfo-eth-lan8700-3dof",
-            "displayName": "Board [RWD 3DOF] [ETH]",
+            "name": "simulator",
+            "displayName": "Simulator",
             "inherits": [
-                "mcu",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "board-relwithdebinfo-eth-lan8700-5dof",
-            "displayName": "Board [RWD 5DOF] [ETH]",
-            "inherits": [
-                "mcu",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "USE_ETHERNET": "ON",
-                "PHY_TYPE": "LAN8700"
-            }
-        },
-        {
-            "name": "simulator-1dof",
-            "displayName": "Simulator [1DOF]",
-            "inherits": [
-                "sim",
-                "dof-1dof"
+                "sim"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "simulator-3dof",
-            "displayName": "Simulator [3DOF]",
+            "name": "simulator-asan",
+            "displayName": "Simulator [ASAN+UBSAN]",
             "inherits": [
-                "sim",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "simulator-5dof",
-            "displayName": "Simulator [5DOF]",
-            "inherits": [
-                "sim",
-                "dof-5dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "simulator-asan-1dof",
-            "displayName": "Simulator [ASAN+UBSAN 1DOF]",
-            "inherits": [
-                "sim",
-                "dof-1dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "STLIB_ENABLE_SANITIZERS": "ON"
-            }
-        },
-        {
-            "name": "simulator-asan-3dof",
-            "displayName": "Simulator [ASAN+UBSAN 3DOF]",
-            "inherits": [
-                "sim",
-                "dof-3dof"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "STLIB_ENABLE_SANITIZERS": "ON"
-            }
-        },
-        {
-            "name": "simulator-asan-5dof",
-            "displayName": "Simulator [ASAN+UBSAN 5DOF]",
-            "inherits": [
-                "sim",
-                "dof-5dof"
+                "sim"
             ],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -350,106 +119,42 @@
     ],
     "buildPresets": [
         {
-            "name": "nucleo-debug-eth-1dof",
-            "configurePreset": "nucleo-debug-eth-1dof"
+            "name": "nucleo-debug-eth",
+            "configurePreset": "nucleo-debug-eth"
         },
         {
-            "name": "nucleo-debug-eth-3dof",
-            "configurePreset": "nucleo-debug-eth-3dof"
+            "name": "nucleo-release-eth",
+            "configurePreset": "nucleo-release-eth"
         },
         {
-            "name": "nucleo-debug-eth-5dof",
-            "configurePreset": "nucleo-debug-eth-5dof"
+            "name": "nucleo-relwithdebinfo-eth",
+            "configurePreset": "nucleo-relwithdebinfo-eth"
         },
         {
-            "name": "nucleo-release-eth-1dof",
-            "configurePreset": "nucleo-release-eth-1dof"
+            "name": "board-debug-eth-lan8700",
+            "configurePreset": "board-debug-eth-lan8700"
         },
         {
-            "name": "nucleo-release-eth-3dof",
-            "configurePreset": "nucleo-release-eth-3dof"
+            "name": "board-release-eth-lan8700",
+            "configurePreset": "board-release-eth-lan8700"
         },
         {
-            "name": "nucleo-release-eth-5dof",
-            "configurePreset": "nucleo-release-eth-5dof"
+            "name": "board-relwithdebinfo-eth-lan8700",
+            "configurePreset": "board-relwithdebinfo-eth-lan8700"
         },
         {
-            "name": "nucleo-relwithdebinfo-eth-1dof",
-            "configurePreset": "nucleo-relwithdebinfo-eth-1dof"
+            "name": "simulator",
+            "configurePreset": "simulator"
         },
         {
-            "name": "nucleo-relwithdebinfo-eth-3dof",
-            "configurePreset": "nucleo-relwithdebinfo-eth-3dof"
-        },
-        {
-            "name": "nucleo-relwithdebinfo-eth-5dof",
-            "configurePreset": "nucleo-relwithdebinfo-eth-5dof"
-        },
-        {
-            "name": "board-debug-eth-lan8700-1dof",
-            "configurePreset": "board-debug-eth-lan8700-1dof"
-        },
-        {
-            "name": "board-debug-eth-lan8700-3dof",
-            "configurePreset": "board-debug-eth-lan8700-3dof"
-        },
-        {
-            "name": "board-debug-eth-lan8700-5dof",
-            "configurePreset": "board-debug-eth-lan8700-5dof"
-        },
-        {
-            "name": "board-release-eth-lan8700-1dof",
-            "configurePreset": "board-release-eth-lan8700-1dof"
-        },
-        {
-            "name": "board-release-eth-lan8700-3dof",
-            "configurePreset": "board-release-eth-lan8700-3dof"
-        },
-        {
-            "name": "board-release-eth-lan8700-5dof",
-            "configurePreset": "board-release-eth-lan8700-5dof"
-        },
-        {
-            "name": "board-relwithdebinfo-eth-lan8700-1dof",
-            "configurePreset": "board-relwithdebinfo-eth-lan8700-1dof"
-        },
-        {
-            "name": "board-relwithdebinfo-eth-lan8700-3dof",
-            "configurePreset": "board-relwithdebinfo-eth-lan8700-3dof"
-        },
-        {
-            "name": "board-relwithdebinfo-eth-lan8700-5dof",
-            "configurePreset": "board-relwithdebinfo-eth-lan8700-5dof"
-        },
-        {
-            "name": "simulator-1dof",
-            "configurePreset": "simulator-1dof"
-        },
-        {
-            "name": "simulator-3dof",
-            "configurePreset": "simulator-3dof"
-        },
-        {
-            "name": "simulator-5dof",
-            "configurePreset": "simulator-5dof"
-        },
-        {
-            "name": "simulator-asan-1dof",
-            "configurePreset": "simulator-asan-1dof"
-        },
-        {
-            "name": "simulator-asan-3dof",
-            "configurePreset": "simulator-asan-3dof"
-        },
-        {
-            "name": "simulator-asan-5dof",
-            "configurePreset": "simulator-asan-5dof"
+            "name": "simulator-asan",
+            "configurePreset": "simulator-asan"
         }
     ],
     "testPresets": [
         {
-            "name": "simulator-all-1dof",
-            "configurePreset": "simulator-1dof",
+            "name": "simulator-all",
+            "configurePreset": "simulator",
             "output": {
                 "outputOnFailure": true
             },
@@ -458,28 +163,8 @@
             }
         },
         {
-            "name": "simulator-all-3dof",
-            "configurePreset": "simulator-3dof",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error"
-            }
-        },
-        {
-            "name": "simulator-all-5dof",
-            "configurePreset": "simulator-5dof",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error"
-            }
-        },
-        {
-            "name": "simulator-adc-1dof",
-            "configurePreset": "simulator-1dof",
+            "name": "simulator-adc",
+            "configurePreset": "simulator",
             "output": {
                 "outputOnFailure": true
             },
@@ -493,58 +178,8 @@
             }
         },
         {
-            "name": "simulator-adc-3dof",
-            "configurePreset": "simulator-3dof",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error"
-            },
-            "filter": {
-                "include": {
-                    "name": "ADCTest"
-                }
-            }
-        },
-        {
-            "name": "simulator-adc-5dof",
-            "configurePreset": "simulator-5dof",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error"
-            },
-            "filter": {
-                "include": {
-                    "name": "ADCTest"
-                }
-            }
-        },
-        {
-            "name": "simulator-all-asan-1dof",
-            "configurePreset": "simulator-asan-1dof",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error"
-            }
-        },
-        {
-            "name": "simulator-all-asan-3dof",
-            "configurePreset": "simulator-asan-3dof",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "noTestsAction": "error"
-            }
-        },
-        {
-            "name": "simulator-all-asan-5dof",
-            "configurePreset": "simulator-asan-5dof",
+            "name": "simulator-all-asan",
+            "configurePreset": "simulator-asan",
             "output": {
                 "outputOnFailure": true
             },
