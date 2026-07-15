@@ -18,29 +18,9 @@ uint32_t disable_buffer_id = 0;
 uint32_t lpu_id = 0;
 #endif
 
-float lpu_vbat[10] = {0.0f};
 float lpu_shunt[10] = {0.0f};
 float lpu_pwm_duty[10] = {0.0f};
 float airgap_measurements[8] = {0.0f};
-
-float target_distance = 0.0f;
-float desired_currents[4] = {0.0f};
-float state[5] = {0.0f};
-float local_airgaps[4] = {0.0f};
-
-float Fe[3] = {0.0f};
-float Fa[4] = {0.0f};
-float Ef[3] = {0.0f};
-float P[3] = {0.0f};
-float R[3] = {0.0f};
-float Zz[3] = {0.0f};
-float Fe_L[3] = {0.0f};
-
-float desired_voltages[4] = {0.0f};
-
-float A[8] = {0.0f};
-float Ak[4] = {0.0f};
-float Bk[3] = {0.0f};
 
 auto slave_state = DataPackets::slave_state_machine::SPI_Connecting;
 
@@ -106,6 +86,7 @@ void init() {
     reset_slave();
 
     // Initialize Orders (invariant across DOFs)
+    OrderPackets::FAULT_init();
     OrderPackets::Stop_init();
     OrderPackets::Set_Fixed_VBAT_init(fixed_vbat);
     OrderPackets::Unset_Fixed_VBAT_init();
@@ -147,9 +128,8 @@ void init() {
     #define ARGS_AIRGAP(arr) arr[0]
 #endif
 
-    DataPackets::LPU_PWM_duties_init(ARGS_LPU(lpu_pwm_duty));
-    DataPackets::LPU_coil_currents_init(ARGS_LPU(lpu_shunt));
-    DataPackets::LPU_VBATs_init(ARGS_LPU(lpu_vbat));
+    DataPackets::LPU_PWM_Duties_init(ARGS_LPU(lpu_pwm_duty));
+    DataPackets::LPU_Coil_Currents_init(ARGS_LPU(lpu_shunt));
     DataPackets::Airgaps_init(ARGS_AIRGAP(airgap_measurements));
 
     #undef ARGS_LPU
@@ -160,30 +140,14 @@ void init() {
         master_state_machine_state,
         slave_state
     );
-    DataPackets::General_State_init(
-        target_distance,
-        desired_currents[0], desired_currents[1], desired_currents[2], desired_currents[3],
-        state[0], state[1], state[2], state[3], state[4],
-        local_airgaps[0], local_airgaps[1], local_airgaps[2], local_airgaps[3],
-        desired_voltages[0], desired_voltages[1], desired_voltages[2], desired_voltages[3],
-        Fe[0], Fe[1], Fe[2],
-        Fa[0], Fa[1], Fa[2], Fa[3],
-        Ef[0], Ef[1], Ef[2],
-        P[0], P[1], P[2],
-        R[0], R[1], R[2],
-        Zz[0], Zz[1], Zz[2],
-        Fe_L[0], Fe_L[1], Fe_L[2],
-        A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7],
-        Ak[0], Ak[1], Ak[2], Ak[3],
-        Bk[0], Bk[1], Bk[2]
-    );
+    DataPackets::General_State_init();
 
     DataPackets::start();
     OrderPackets::start();
 }
 
 bool is_connected() {
-    return spi_comms.is_connected() && LCU_Master::eth.is_connected() && OrderPackets::control_station_tcp->is_connected();
+    return spi_comms.is_connected() && LCU_Master::eth.is_connected() && OrderPackets::vcu_tcp->is_connected();
 }
 
 void clear_flags() {
@@ -358,13 +322,11 @@ void process_orders() {
 }
 
 void read_slave_data() {
-    // LPU data is synced via Frame (LPUBase::get_uplink_layout -> vbat_v, shunt_v, duty_cycle)
+    // LPU data is synced via Frame (LPUBase::get_uplink_layout -> shunt_v, duty_cycle)
     // The Frame automatically populates these fields on the Master's LPU objects
-    auto vbats = LCU_Master::lpu_array.get_all_vbat();
     auto shunts = LCU_Master::lpu_array.get_all_shunt();
     auto duty_cycles = LCU_Master::lpu_array.get_all_duty_cycle();
     for (size_t i = 0; i < LCUConfig::ACTIVE_LPU_COUNT; i++) {
-        lpu_vbat[i] = vbats[i];
         lpu_shunt[i] = shunts[i];
         lpu_pwm_duty[i] = duty_cycles[i];
     }
@@ -376,21 +338,6 @@ void read_slave_data() {
     }
 
     // Control outputs synced via Frame (ControlBase::get_uplink_layout -> output)
-    for (int i = 0; i < 4; i++) desired_voltages[i] = control.output.Voltages[i];
-    for (int i = 0; i < 3; i++) Fe[i] = control.output.Fe[i];
-    for (int i = 0; i < 4; i++) Fa[i] = control.output.Fa[i];
-    for (int i = 0; i < 3; i++) Ef[i] = control.output.Ef[i];
-    for (int i = 0; i < 3; i++) P[i] = control.output.P[i];
-    for (int i = 0; i < 3; i++) R[i] = control.output.R[i];
-    for (int i = 0; i < 3; i++) Zz[i] = control.output.Zz[i];
-    for (int i = 0; i < 3; i++) Fe_L[i] = control.output.Fe_L[i];
-    for (int i = 0; i < 8; i++) A[i] = control.output.A[i];
-    for (int i = 0; i < 4; i++) Ak[i] = control.output.Ak[i];
-    for (int i = 0; i < 3; i++) Bk[i] = control.output.Bk[i];
-    target_distance = control.output.Referencia;
-    for (int i = 0; i < 4; i++) desired_currents[i] = control.output.CorrienteReferencia[i];
-    for (int i = 0; i < 5; i++) state[i] = control.output.Estados[i];
-    for (int i = 0; i < 4; i++) local_airgaps[i] = control.output.GapsLocales[i];
 
     // Slave state synced via Frame (StateMachineBase::get_uplink_layout -> current_state)
     slave_state = static_cast<DataPackets::slave_state_machine>(

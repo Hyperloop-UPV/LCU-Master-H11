@@ -38,9 +38,9 @@ option(ADJ_AUTO_PUSH "Auto-commit+push generated adj JSONs to remote" OFF)
 
 # Adj repository configuration (committed)
 set(ADJ_REMOTE "git@github.com:Hyperloop-UPV/adj.git" CACHE STRING "Git remote URL for all adj repositories")
-set(ADJ_1DOF_BRANCH "LCU-H11-1DOF-v2" CACHE STRING "Git branch for adj_1DOF")
-set(ADJ_3DOF_BRANCH "LCU-H11-3DOF" CACHE STRING "Git branch for adj_3DOF")
-set(ADJ_5DOF_BRANCH "LCU-H11-5DOF" CACHE STRING "Git branch for adj_5DOF")
+set(ADJ_1DOF_BRANCH "Astra" CACHE STRING "Git branch for adj_1DOF")
+set(ADJ_3DOF_BRANCH "Astra" CACHE STRING "Git branch for adj_3DOF")
+set(ADJ_5DOF_BRANCH "Astra" CACHE STRING "Git branch for adj_5DOF")
 
 # Parse .env for developer overrides (ADJ_AUTO_PULL, ADJ_AUTO_PUSH)
 if(EXISTS "${CMAKE_SOURCE_DIR}/.env")
@@ -114,11 +114,23 @@ if(NOT _previous_dof STREQUAL "${GENERATOR_JSON_DIR}")
 endif()
 file(WRITE "${_ACTIVE_DOF_FILE}" "${GENERATOR_JSON_DIR}")
 
-# Adj generation from Jinja2 templates (always generate all 3 DOFs)
+# Adj generation from Jinja2 templates (always attempt pull on every build).
+# The python script is content-aware: it only rewrites JSONs and only touches
+# the stamp when something actually changed, so downstream packet regeneration
+# (and the C++ recompile it triggers) only happens on real changes.
 set(ADJ_GENERATOR_SCRIPT ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/adj_generate.py)
 set(ADJ_GEN_STAMP ${CMAKE_SOURCE_DIR}/deps/.adj_generated_stamp)
 file(GLOB_RECURSE ADJ_TEMPLATES
   ${CMAKE_SOURCE_DIR}/Core/Inc/Code_generation/adj_templates/*.j2
+)
+
+# Sentinel file touched on every build so the generator command below re-runs
+# even when the templates/.env are unchanged. Without this, the stamp file
+# suppresses re-execution and remote changes (auto-pull) are never fetched.
+set(ADJ_SENTINEL ${CMAKE_BINARY_DIR}/adj_pull_sentinel)
+add_custom_target(adj_pull_sentinel
+  COMMAND ${CMAKE_COMMAND} -E touch ${ADJ_SENTINEL}
+  COMMENT "Refresh adj pull sentinel"
 )
 
 add_custom_command(
@@ -130,19 +142,20 @@ add_custom_command(
     ADJ_5DOF_BRANCH=${ADJ_5DOF_BRANCH}
     ${PYTHON_FOR_TOOLS} ${ADJ_GENERATOR_SCRIPT}
     --all
-    --no-pull
+    --stamp ${ADJ_GEN_STAMP}
     $<$<BOOL:${ADJ_AUTO_PUSH}>:--auto-push>
-  COMMAND ${CMAKE_COMMAND} -E touch ${ADJ_GEN_STAMP}
   DEPENDS
     ${ADJ_GENERATOR_SCRIPT}
     ${ADJ_TEMPLATES}
     ${CMAKE_SOURCE_DIR}/.env
-  COMMENT "Generating all adj JSONs from templates"
+    ${ADJ_SENTINEL}
+  COMMENT "Generating all adj JSONs from templates (auto-pull)"
 )
 
 add_custom_target(generate_adj DEPENDS ${ADJ_GEN_STAMP})
+add_dependencies(generate_adj adj_pull_sentinel)
 
-file(GLOB_RECURSE GENERATOR_JSONS
+file(GLOB_RECURSE GENERATOR_JSONS CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/deps/${GENERATOR_JSON_DIR}/*.json
 )
 

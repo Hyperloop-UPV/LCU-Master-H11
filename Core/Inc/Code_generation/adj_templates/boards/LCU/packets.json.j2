@@ -1,7 +1,7 @@
 [
     {
         "type": "data",
-        "name": "LPU PWM duties",
+        "name": "LPU PWM Duties",
         "variables": [
             {%- for i in range(1, lpu_count + 1) -%}
             "pwm_duty_cycle_{{ i }}"{% if not loop.last %}, {% endif %}
@@ -10,11 +10,11 @@
         "id": 9500,
         "period_type": "us",
         "period": 500.0,
-        "socket": "control_station_udp"
+        "socket": "vcu_udp"
     },
     {
         "type": "data",
-        "name": "LPU coil currents",
+        "name": "LPU Coil Currents",
         "variables": [
             {%- for i in range(1, lpu_count + 1) -%}
             "coil_current_{{ i }}"{% if not loop.last %}, {% endif %}
@@ -23,20 +23,7 @@
         "id": 9501,
         "period_type": "us",
         "period": 500.0,
-        "socket": "control_station_udp"
-    },
-    {
-        "type": "data",
-        "name": "LPU VBATs",
-        "variables": [
-            {%- for i in range(1, lpu_count + 1) -%}
-            "vbat_{{ i }}"{% if not loop.last %}, {% endif %}
-            {%- endfor -%}
-        ],
-        "id": 9502,
-        "period_type": "us",
-        "period": 500.0,
-        "socket": "control_station_udp"
+        "socket": "vcu_udp"
     },
     {
         "type": "data",
@@ -46,10 +33,10 @@
             "airgap_{{ i }}"{% if not loop.last %}, {% endif %}
             {%- endfor -%}
         ],
-        "id": 9503,
+        "id": 9502,
         "period_type": "us",
         "period": 500.0,
-        "socket": "control_station_udp"
+        "socket": "vcu_udp"
     },
     {
         "type": "data",
@@ -61,71 +48,17 @@
         "id": 9520,
         "period_type": "us",
         "period": 500.0,
-        "socket": "control_station_udp"
+        "socket": "vcu_udp"
     },
     {
         "type": "data",
         "name": "General State",
         "variables": [
-            "desired_distance",
-            "desired_current_1",
-            "desired_current_2",
-            "desired_current_3",
-            "desired_current_4",
-            "state_0",
-            "state_1",
-            "state_2",
-            "state_3",
-            "state_4",
-            "local_airgap_1",
-            "local_airgap_2",
-            "local_airgap_3",
-            "local_airgap_4",
-            "desired_voltage_1",
-            "desired_voltage_2",
-            "desired_voltage_3",
-            "desired_voltage_4",
-            "Fe_0",
-            "Fe_1",
-            "Fe_2",
-            "Fa_0",
-            "Fa_1",
-            "Fa_2",
-            "Fa_3",
-            "Ef_0",
-            "Ef_1",
-            "Ef_2",
-            "P_0",
-            "P_1",
-            "P_2",
-            "R_0",
-            "R_1",
-            "R_2",
-            "Zz_0",
-            "Zz_1",
-            "Zz_2",
-            "Fe_L_0",
-            "Fe_L_1",
-            "Fe_L_2",
-            "A_0",
-            "A_1",
-            "A_2",
-            "A_3",
-            "A_4",
-            "A_5",
-            "A_6",
-            "A_7",
-            "Ak_0",
-            "Ak_1",
-            "Ak_2",
-            "Ak_3",
-            "Bk_0",
-            "Bk_1",
-            "Bk_2"
+            
         ],
         "id": 9521,
         "period_type": "us",
         "period": 500.0,
-        "socket": "control_station_udp"
+        "socket": "vcu_udp"
     }
 ]

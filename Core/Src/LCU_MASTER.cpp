@@ -21,8 +21,10 @@ void init() {
     );
 
     Communications::init();
-    Watchdog::watchdog_time = std::chrono::milliseconds(10);
+    Watchdog::watchdog_time = std::chrono::milliseconds(100);
     Watchdog::start();
+    Diagnostics::install_ethernet_sink(OrderPackets::vcu_tcp);
+    FaultController::register_fault_propagation(OrderPackets::vcu_tcp, OrderPackets::FAULT_order);
 }
 
 void update() {

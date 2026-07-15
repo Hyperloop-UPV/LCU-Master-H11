@@ -131,7 +131,11 @@ def auto_clone(adj_name, env):
             ["git", "-C", str(repo_path), "remote", "get-url", "origin"],
             check=False,
         )
-        if current_remote.returncode == 0 and current_remote.stdout.strip() != remote:
+        if current_remote.returncode != 0:
+            run(["git", "-C", str(repo_path), "remote", "add", "origin", remote])
+            print(f"  {adj_name}: Added origin remote ({remote})")
+            return True
+        if current_remote.stdout.strip() != remote:
             print(f"  Remote mismatch for {adj_name}, re-cloning...")
             import shutil
             shutil.rmtree(repo_path)
@@ -140,29 +144,66 @@ def auto_clone(adj_name, env):
 
     if not repo_path.exists():
         print(f"  Cloning {adj_name} from {remote}...")
-        run(["git", "clone", "-b", branch, remote, str(repo_path)], cwd=DEPS_DIR)
+        result = run(
+            ["git", "clone", "-b", branch, remote, str(repo_path)],
+            cwd=DEPS_DIR,
+            check=False,
+        )
+        if result.returncode != 0:
+            print(f"  {adj_name}: Clone failed, creating local directory.")
+            repo_path.mkdir(parents=True, exist_ok=True)
+            return True
         return repo_path.exists()
 
     return True
 
 
 def auto_pull(adj_name, env):
-    """Pull latest changes if ADJ_AUTO_PULL=ON."""
+    """Pull latest changes if ADJ_AUTO_PULL=ON.
+
+    Returns True if the resolved HEAD changed (i.e. remote had new commits).
+    """
     if not get_bool_env(env, "ADJ_AUTO_PULL", "ON"):
         print(f"  {adj_name}: Auto-pull disabled, skipping.")
-        return
+        return False
     repo_path = DEPS_DIR / adj_name
     if not (repo_path / ".git").exists():
-        return
+        return False
     remote = get_remote(adj_name, env)
     if not remote:
-        return
-    print(f"  Pulling {adj_name}...")
-    run(["git", "-C", str(repo_path), "pull", "origin", get_branch(adj_name, env)])
+        return False
+    branch = get_branch(adj_name, env)
+    print(f"  Pulling {adj_name} ({branch})...")
+    head_before = run(
+        ["git", "-C", str(repo_path), "rev-parse", "HEAD"], check=False
+    ).stdout.strip()
+    fetch = run(
+        ["git", "-C", str(repo_path), "fetch", "origin", branch],
+        check=False,
+    )
+    if fetch.returncode != 0:
+        print(f"  {adj_name}: Fetch failed (branch '{branch}' may not exist yet), generating locally.")
+        return False
+    fetch_head = run(
+        ["git", "-C", str(repo_path), "rev-parse", "FETCH_HEAD"], check=False
+    ).stdout.strip()
+    if fetch_head and fetch_head != head_before:
+        # Only hard-reset when HEAD actually advances, so a no-op pull does
+        # not revert the locally-rendered boards/LCU/*.json (which would make
+        # generate() rewrite them every build and force a full packet regen).
+        run(["git", "-C", str(repo_path), "reset", "--hard", "FETCH_HEAD"])
+        print(f"  {adj_name}: HEAD updated ({head_before[:8]} -> {fetch_head[:8]})")
+        return True
+    print(f"  {adj_name}: Already up to date.")
+    return False
 
 
 def generate(adj_name):
-    """Render all Jinja2 templates into the adj directory."""
+    """Render all Jinja2 templates into the adj directory.
+
+    Returns True if any output file actually changed (content-aware write so
+    unchanged renders don't bump mtimes and trigger downstream rebuilds).
+    """
     if adj_name not in DOF_CONFIGS:
         print(f"ERROR: Unknown adj config '{adj_name}'. Known: {list(DOF_CONFIGS)}")
         return False
@@ -177,16 +218,21 @@ def generate(adj_name):
         keep_trailing_newline=True,
     )
 
+    changed = False
     for template_rel, output_rel in TEMPLATE_MAP.items():
         template = env.get_template(template_rel)
         rendered = template.render(**config)
         output_path = repo_path / output_rel
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        if output_path.exists() and output_path.read_text() == rendered:
+            continue
         output_path.write_text(rendered)
+        changed = True
 
     print(f"  Generated {len(TEMPLATE_MAP)} files for {adj_name} "
           f"(LPUs={config['lpu_count']}, airgaps={config['airgap_count']}, "
-          f"has_lpu_id={config['has_lpu_id']})")
-    return True
+          f"has_lpu_id={config['has_lpu_id']}){' [changed]' if changed else ' [up to date]'}")
+    return changed
 
 
 def auto_push(adj_name, env, force=False):
@@ -237,17 +283,17 @@ def init_git_repo(adj_name):
 
 
 def process_adj(adj_name, env, auto_push_flag=False):
-    """Full workflow for one adj directory."""
+    """Full workflow for one adj directory. Returns True if anything changed."""
     print(f"\n--- {adj_name} ---")
     if not auto_clone(adj_name, env):
         print(f"  SKIPPING {adj_name}: Could not clone.")
-        return
-    auto_pull(adj_name, env)
-    if not generate(adj_name):
-        return
+        return False
+    pull_changed = auto_pull(adj_name, env)
+    gen_changed = generate(adj_name)
     init_git_repo(adj_name)
     auto_push(adj_name, env, force=auto_push_flag)
     print(f"  {adj_name} DONE.")
+    return pull_changed or gen_changed
 
 
 def main():
@@ -268,6 +314,11 @@ def main():
         "--no-pull", action="store_true",
         help="Skip git pull even if ADJ_AUTO_PULL is ON",
     )
+    parser.add_argument(
+        "--stamp", default=None,
+        help="Path to a stamp file touched only when any adj content changed "
+             "(used by CMake to gate downstream packet regeneration)",
+    )
     args = parser.parse_args()
 
     if not args.adj and not args.all:
@@ -280,11 +331,22 @@ def main():
     if args.no_pull:
         env["ADJ_AUTO_PULL"] = "OFF"
 
+    any_changed = False
     if args.all:
         for name in DOF_CONFIGS:
-            process_adj(name, env, auto_push_flag=args.auto_push)
+            if process_adj(name, env, auto_push_flag=args.auto_push):
+                any_changed = True
     else:
-        process_adj(args.adj, env, auto_push_flag=args.auto_push)
+        any_changed = process_adj(args.adj, env, auto_push_flag=args.auto_push)
+
+    if args.stamp:
+        stamp = Path(args.stamp)
+        if any_changed or not stamp.exists():
+            stamp.parent.mkdir(parents=True, exist_ok=True)
+            stamp.touch()
+            print(f"\nAdj stamp touched (changes detected): {stamp}")
+        else:
+            print(f"\nAdj stamp unchanged (no changes): {stamp}")
 
 
 if __name__ == "__main__":

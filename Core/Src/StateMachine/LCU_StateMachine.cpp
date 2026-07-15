@@ -12,28 +12,65 @@ bool transition_operational_to_idle() {
     return !Communications::operational_state;
 }
 
-bool transition_idle_to_operational() {
-    return Communications::operational_state;
+bool transition_idle_to_levitating() {
+    return Communications::operational_state &&
+           slave_state_machine.desired_state == SlaveState::LEVITATION;
+}
+
+bool transition_idle_to_current_control() {
+    return Communications::operational_state &&
+           slave_state_machine.desired_state == SlaveState::CURRENT_CONTROL;
+}
+
+bool transition_idle_to_debug() {
+    return Communications::operational_state &&
+           slave_state_machine.desired_state == SlaveState::DEBUG;
+}
+
+bool transition_to_levitating() {
+    return slave_state_machine.desired_state == SlaveState::LEVITATION;
+}
+
+bool transition_to_current_control() {
+    return slave_state_machine.desired_state == SlaveState::CURRENT_CONTROL;
+}
+
+bool transition_to_debug() {
+    return slave_state_machine.desired_state == SlaveState::DEBUG;
 }
 
 // Actions
 void on_idle_enter() {
     LCU_Master::led_connected.turn_on();
+    LCU_Master::lpu_array.disable_all();
     slave_state_machine.desired_state = SlaveState::IDLE;
 }
 
-void on_operational_enter() {
+void on_levitating_enter() {
     LCU_Master::led_levitation.turn_on();
+    LCU_Master::lpu_array.enable_all();
+}
+
+void on_levitating_exit() {
+    LCU_Master::led_levitation.turn_off();
+}
+
+void on_current_control_enter() {
     LCU_Master::led_current_control.turn_on();
+    LCU_Master::lpu_array.enable_all();
+}
+
+void on_current_control_exit() {
+    LCU_Master::led_current_control.turn_off();
+}
+
+void on_debug_enter() {
     LCU_Master::led_debug.turn_on();
     LCU_Master::lpu_array.enable_all();
 }
 
-void on_operational_exit() {
-    LCU_Master::led_levitation.turn_off();
-    LCU_Master::led_current_control.turn_off();
+void on_debug_exit() {
     LCU_Master::led_debug.turn_off();
-    LCU_Master::lpu_array.disable_all();
 }
 
 void on_fault_enter() {
