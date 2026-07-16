@@ -6,10 +6,13 @@ void init() {
     Board::init();
 
     master_fault.turn_on();
+    slave_ready.turn_on();
 
     MDMA::start();
 
     LCU_SM::start();
+
+    LCU_SM::init_adj_commit_hash_check();
 
     // Initialize Frame (order must match FrameType: lpu_array, airgap_array, state_machine, control, report)
     Frame::init(
@@ -21,7 +24,7 @@ void init() {
     );
 
     Communications::init();
-    Watchdog::watchdog_time = std::chrono::milliseconds(100);
+    Watchdog::watchdog_time = std::chrono::milliseconds(200);
     Watchdog::start();
     Diagnostics::install_ethernet_sink(OrderPackets::vcu_tcp);
     FaultController::register_fault_propagation(OrderPackets::vcu_tcp, OrderPackets::FAULT_order);

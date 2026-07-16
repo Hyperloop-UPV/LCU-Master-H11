@@ -35,6 +35,8 @@ void on_debug_enter();
 void on_debug_exit();
 void cyclic_update_lpus();
 void cyclic_connecting_toggle_led();
+void init_adj_commit_hash_check();
+bool check_adj_commit_success();
 
 inline uint32_t check_slave_fault_id;
 

@@ -3,9 +3,17 @@
 
 namespace LCU_SM {
 
+extern "C" const char ADJ_COMMIT_HASH[16];
+
+#ifdef STLIB_ETH
+static HeapOrder *adj_commit_hash_order;
+static bool adj_commit_hash_received;
+static uint64_t adj_commit_hash_received_value;
+#endif
+
 // Transition guards
 bool transition_connecting_to_idle() {
-    return Communications::is_connected();
+    return Communications::is_connected() && check_adj_commit_success();
 }
 
 bool transition_operational_to_idle() {
@@ -37,6 +45,33 @@ bool transition_to_current_control() {
 
 bool transition_to_debug() {
     return slave_state_machine.desired_state == SlaveState::DEBUG;
+}
+
+void init_adj_commit_hash_check() {
+#ifdef STLIB_ETH
+    adj_commit_hash_order = new HeapOrder(0xFFFF, []() { adj_commit_hash_received = true; }, &adj_commit_hash_received_value);
+#endif
+}
+
+bool check_adj_commit_success() {
+    // return true;
+#ifdef STLIB_ETH
+    if (adj_commit_hash_received) {
+        uint64_t hash_flat =
+            ((uint64_t)ADJ_COMMIT_HASH[0]) |
+            ((uint64_t)ADJ_COMMIT_HASH[1] << 8) |
+            ((uint64_t)ADJ_COMMIT_HASH[2] << 16) |
+            ((uint64_t)ADJ_COMMIT_HASH[3] << 24) |
+            ((uint64_t)ADJ_COMMIT_HASH[4] << 32) |
+            ((uint64_t)ADJ_COMMIT_HASH[5] << 40) |
+            ((uint64_t)ADJ_COMMIT_HASH[6] << 48) |
+            ((uint64_t)ADJ_COMMIT_HASH[7] << 56);
+        return adj_commit_hash_received_value == hash_flat;
+    }
+    return false;
+#else
+    return true;
+#endif
 }
 
 // Actions
