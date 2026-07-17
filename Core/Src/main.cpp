@@ -2,8 +2,6 @@
 #include "LCU_MASTER.hpp"
 
 int main(void) {
-    Hard_fault_check();
-
     LCU_Master::init();
 
     while (1) {

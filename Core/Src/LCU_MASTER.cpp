@@ -12,7 +12,6 @@ void init() {
 
     LCU_SM::start();
 
-    LCU_SM::init_adj_commit_hash_check();
 
     // Initialize Frame (order must match FrameType: lpu_array, airgap_array, state_machine, control, report)
     Frame::init(
@@ -24,7 +23,8 @@ void init() {
     );
 
     Communications::init();
-    Watchdog::watchdog_time = std::chrono::milliseconds(200);
+    LCU_SM::init_adj_commit_hash_check();
+    Watchdog::watchdog_time = std::chrono::milliseconds(1000);
     Watchdog::start();
     Diagnostics::install_ethernet_sink(OrderPackets::vcu_tcp);
     FaultController::register_fault_propagation(OrderPackets::vcu_tcp, OrderPackets::FAULT_order);

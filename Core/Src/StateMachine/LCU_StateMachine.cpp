@@ -16,34 +16,19 @@ bool transition_connecting_to_idle() {
     return Communications::is_connected() && check_adj_commit_success();
 }
 
-bool transition_operational_to_idle() {
-    return !Communications::operational_state;
+bool transition_any_to_idle() {
+    return slave_state_machine.desired_state == SlaveState::IDLE;
 }
 
 bool transition_idle_to_levitating() {
-    return Communications::operational_state &&
-           slave_state_machine.desired_state == SlaveState::LEVITATION;
-}
-
-bool transition_idle_to_current_control() {
-    return Communications::operational_state &&
-           slave_state_machine.desired_state == SlaveState::CURRENT_CONTROL;
-}
-
-bool transition_idle_to_debug() {
-    return Communications::operational_state &&
-           slave_state_machine.desired_state == SlaveState::DEBUG;
-}
-
-bool transition_to_levitating() {
     return slave_state_machine.desired_state == SlaveState::LEVITATION;
 }
 
-bool transition_to_current_control() {
+bool transition_idle_to_current_control() {
     return slave_state_machine.desired_state == SlaveState::CURRENT_CONTROL;
 }
 
-bool transition_to_debug() {
+bool transition_idle_to_debug() {
     return slave_state_machine.desired_state == SlaveState::DEBUG;
 }
 
@@ -54,7 +39,6 @@ void init_adj_commit_hash_check() {
 }
 
 bool check_adj_commit_success() {
-    // return true;
 #ifdef STLIB_ETH
     if (adj_commit_hash_received) {
         uint64_t hash_flat =

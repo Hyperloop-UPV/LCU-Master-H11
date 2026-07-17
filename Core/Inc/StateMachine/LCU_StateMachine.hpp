@@ -17,13 +17,10 @@ void update();
 
 // Transition guards
 bool transition_connecting_to_idle();
-bool transition_operational_to_idle();
+bool transition_any_to_idle();
 bool transition_idle_to_levitating();
 bool transition_idle_to_current_control();
 bool transition_idle_to_debug();
-bool transition_to_levitating();
-bool transition_to_current_control();
-bool transition_to_debug();
 
 // Actions
 void on_idle_enter();
@@ -54,23 +51,17 @@ inline constexpr auto idle_state = make_state(
 
 inline constexpr auto levitating_state = make_state(
     MasterStates::Levitating,
-    Transition<MasterStates>{MasterStates::Idle, transition_operational_to_idle},
-    Transition<MasterStates>{MasterStates::Current_Control, transition_to_current_control},
-    Transition<MasterStates>{MasterStates::Debug, transition_to_debug}
+    Transition<MasterStates>{MasterStates::Idle, transition_any_to_idle}
 );
 
 inline constexpr auto current_control_state = make_state(
     MasterStates::Current_Control,
-    Transition<MasterStates>{MasterStates::Idle, transition_operational_to_idle},
-    Transition<MasterStates>{MasterStates::Levitating, transition_to_levitating},
-    Transition<MasterStates>{MasterStates::Debug, transition_to_debug}
+    Transition<MasterStates>{MasterStates::Idle, transition_any_to_idle}
 );
 
 inline constexpr auto debug_state = make_state(
     MasterStates::Debug,
-    Transition<MasterStates>{MasterStates::Idle, transition_operational_to_idle},
-    Transition<MasterStates>{MasterStates::Levitating, transition_to_levitating},
-    Transition<MasterStates>{MasterStates::Current_Control, transition_to_current_control}
+    Transition<MasterStates>{MasterStates::Idle, transition_any_to_idle}
 );
 
 inline constinit auto state_machine = []() consteval {
