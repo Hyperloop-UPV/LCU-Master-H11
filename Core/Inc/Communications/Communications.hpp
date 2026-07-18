@@ -15,6 +15,7 @@ inline uint32_t last_report_seq_num = 0;
 inline bool operational_state = false;
 inline auto master_state_machine_state = DataPackets::master_state_machine::Connecting;
 inline volatile bool is_resetting_slave = false;
+inline float ctrl_out_data[81] = {0.0f};
 
 void init();
 void update();
