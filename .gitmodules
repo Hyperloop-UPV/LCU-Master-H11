@@ -7,4 +7,4 @@
 [submodule "Core/Inc/Code_generation/JSON_ADE"]
 	path = Core/Inc/Code_generation/JSON_ADE
 	url = git@github.com:Hyperloop-UPV/adj.git
-	branch = Astra
+	branch = hv-bms-tests

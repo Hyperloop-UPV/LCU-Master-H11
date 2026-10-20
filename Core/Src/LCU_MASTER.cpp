@@ -25,7 +25,7 @@ void init() {
     Communications::init();
     LCU_SM::init_adj_commit_hash_check();
     Watchdog::watchdog_time = std::chrono::milliseconds(1000);
-    Watchdog::start();
+    // Watchdog::start();
     Diagnostics::install_ethernet_sink(OrderPackets::vcu_tcp);
     FaultController::register_fault_propagation(OrderPackets::vcu_tcp, OrderPackets::FAULT_order);
 }

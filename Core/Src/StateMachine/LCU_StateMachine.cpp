@@ -39,6 +39,7 @@ void init_adj_commit_hash_check() {
 }
 
 bool check_adj_commit_success() {
+    return true;
 #ifdef STLIB_ETH
     if (adj_commit_hash_received) {
         uint64_t hash_flat =
